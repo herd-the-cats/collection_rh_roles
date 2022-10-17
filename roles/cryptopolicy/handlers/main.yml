@@ -1,6 +1,7 @@
 ---
 - name: "Restart system"
   reboot:
+  become: true
   when: >
       ( (lookup('pipe', 'date +\"%F %T\"')) | to_datetime - (lookup('pipe','uptime -s') | to_datetime) ).total_seconds() | int > 60 and
       cryptopolicy_reboot
