@@ -1,0 +1,30 @@
+galaxy_info:
+  author: Jason Glass
+  description: Set crypto-policy level on supported Linux distros
+  company: N/A
+  license: BSD-3-Clause
+
+  min_ansible_version: 2.12
+
+  platforms:
+  - name: Fedora
+    versions:
+    - 28
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
+    - 34
+    - 35
+  - name: RHEL
+    versions:
+    - 8
+
+  galaxy_tags:
+  - crypto-policy
+  - security
+  - ciphers
+  - TLS
+
+dependencies: []

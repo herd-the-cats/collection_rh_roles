@@ -1,0 +1,9 @@
+---
+- name: "Restart system"
+  reboot:
+  when: >
+      ( (lookup('pipe', 'date +\"%F %T\"')) | to_datetime - (lookup('pipe','uptime -s') | to_datetime) ).total_seconds() | int > 60 and
+      cryptopolicy_reboot
+  listen: "cryptopolicy reboot system"
+# The uptime check is to prevent multiple handlers rebooting repeatedly. Maybe there is a better way to do this?
+# ansible_uptime_seconds wouldn't be refreshed in between handlers afaik.

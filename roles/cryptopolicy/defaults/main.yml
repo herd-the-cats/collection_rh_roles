@@ -1,0 +1,7 @@
+---
+# defaults file for cryptopolicy
+
+# Options: DEFAULT, LEGACY, FUTURE, and other permutations. See man page for update-crypto-policies.
+cryptopolicy_level: "DEFAULT"
+
+cryptopolicy_reboot: true
