@@ -1,0 +1,51 @@
+- name: "Create list of hosts from object autogen groups"
+  ansible.builtin.set_fact:
+    nagios_autogen_objects: "{{ nagios_autogen_objects | default([]) | union(groups[item]) }}"
+  loop: "{{ nagios_objects_autogen_groups }}"
+  when: nagios_objects_auto_generate | bool
+
+- name: "Run setup module to gather facts on selected autogen group hosts"
+  ansible.builtin.setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ nagios_autogen_objects }}"
+  when: nagios_objects_auto_generate | bool
+
+- name: "Collect Nagios information for each play host into a dictionary variable"
+  ansible.builtin.set_fact:
+    nagios_object_facts:
+      name: "{{ inventory_hostname }}"
+      location: "{{ nagios_object_location | default('unknown')}}"
+      type: "{{ nagios_object_type | default('generic')}}"
+      team: "{{ nagios_object_team | default('orphaned')}}"
+      ip: "{{ ansible_default_ipv4.address }}"
+      use: "{{ nagios_object_template | default('generic')}}"
+      contacts: "{{ nagios_object_contacts | default([])}}"
+      hostgroups: "{{ nagios_object_hostgroups | default([])}}"
+      services: "{{ nagios_object_services | default([])}}"
+      custom_host_settings: "{{ nagios_object_custom_host_settings | default([])}}"
+      custom_services: "{{ nagios_object_custom_services | default([])}}"
+      append_block: "{{ nagios_object_append_block | default('')}}"
+  when:
+  - item not in nagios_objects_autogen_exclude
+  - nagios_objects_auto_generate | bool
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ nagios_autogen_objects }}"
+
+- name: "Combine hostvars of play hosts into dynamic monitored hosts list"
+  ansible.builtin.set_fact:
+    nagios_objects_auto_list: "{{ nagios_objects_auto_list | default([]) + [ hostvars[item].nagios_object_facts ] }}"
+  loop: "{{ nagios_autogen_objects }}"
+  when:
+  - item not in nagios_objects_autogen_exclude
+  - nagios_objects_auto_generate | bool
+  delegate_to: "localhost"
+
+- name: "Loop through play hosts to create a list of hosts in the desired format"
+  ansible.builtin.set_fact:
+    nagios_objects_list: '{{ nagios_objects_list | default([]) + [ item ] }}'
+  loop: "{{ nagios_objects_auto_list }}"
+  when:
+  - item.name not in nagios_objects_list | map(attribute="name") | list
+  - nagios_objects_auto_generate | bool

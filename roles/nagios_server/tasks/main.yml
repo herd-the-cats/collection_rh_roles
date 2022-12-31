@@ -1,0 +1,159 @@
+---
+# tasks file for nagios_server
+
+- name: "Include distro specific variables"
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+  - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+  - "{{ ansible_distribution }}.yml"
+  - "{{ ansible_os_family }}.yml"
+  tags:
+  - always
+
+
+- name: "Install required Nagios server and plugin packages"
+  ansible.builtin.package:
+    name: "{{ nagios_packages }}"
+    state: "present"
+  become: true
+
+# More info on apache and bcrypt https://www.endpointdev.com/blog/2016/02/bonked-by-basicauth-because-bcrypt/
+#TODO check for idempotency of htpasswd command since the module doesn't support bcrypt
+- name: "Create empty file for htpasswd"
+  ansible.builtin.file:
+    path: "{{ nagios_htpasswd_path }}"
+    state: "touch"
+    access_time: "preserve"
+    mode: 0640
+    owner: "{{ nagios_apache_user }}"
+    group: "{{ nagios_apache_user }}"
+  become: true
+
+# There is an htpasswd module for Ansible, but it doesn't support bcrypt properly.
+- name: "Create htpasswd for admin users"
+  ansible.builtin.shell: 'export HISTIGNORE="htpasswd*" && htpasswd -Bb -C 10 {{ nagios_htpasswd_path }} {{ item.name }} {{ item.pass }}'
+  loop: "{{ nagios_admins }}"
+  become: true
+
+- name: "Create Apache virtualhost template for nagios"
+  ansible.builtin.template:
+    src: "etc/httpd/conf.d/nagios.conf.j2"
+    dest: "/etc/httpd/conf.d/nagios.conf"
+    mode: 0644
+    owner: "root"
+    group: "root"
+  become: true
+
+- name: "Create default virtualhost to redirect to HTTPS Nagios"
+  ansible.builtin.template:
+    src: "etc/httpd/conf.d/00default_vhost.conf.j2"
+    dest: "/etc/httpd/conf.d/00default_vhost.conf"
+    mode: 0644
+    owner: "root"
+    group: "root"
+  become: true
+
+- name: "Create cgi.cfg template"
+  ansible.builtin.template:
+    src: "etc/nagios/cgi.cfg.j2"
+    dest: "/etc/nagios/cgi.cfg"
+    mode: 0644
+    owner: "root"
+    group: "root"
+  become: true
+
+- name: "Include tasks to build combined list of Ansible auto-gen and manually specified (non-Ansible) objects to be monitored."
+  ansible.builtin.include_tasks: "build_host_list.yml"
+  throttle: 1
+
+- name: "Set path variable from each object's type, team, and location"
+  ansible.builtin.set_fact:
+    nagios_object_paths: "{{ nagios_object_paths | default([]) + [ '/' ~ item.type ~ '/' ~ item.team ~ '/' ~ item.location ] }}"
+  loop: "{{ nagios_objects_list }}"
+
+- name: "Create nagios.cfg template"
+  ansible.builtin.template:
+    src: "etc/nagios/nagios.cfg.j2"
+    dest: "/etc/nagios/nagios.cfg"
+    mode: 0644
+    owner: "root"
+    group: "root"
+  become: true
+
+- name: "Create all unique object directory paths"
+  ansible.builtin.file:
+    path: "/etc/nagios/objects{{ item }}"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "{{ nagios_system_user }}"
+    mode: 0750
+  loop: "{{ nagios_objects_paths | unique }}"
+  become: true
+
+# Note: the objects and private dirs have permissions root:nagios:0640
+- name: "Create resource.cfg template (user macros)"
+  ansible.builtin.template:
+    src: "etc/nagios/private/resource.cfg.j2"
+    dest: "/etc/nagios/private/resource.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+
+- name: "Create commands config directory"
+  ansible.builtin.file:
+    path: "/etc/nagios/objects/commands"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "{{ nagios_system_user }}"
+    mode: 0750
+  become: true
+
+- name: "Create main commands template"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/commands/commands.cfg.j2"
+    dest: "/etc/nagios/objects/commands/commands.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+
+#- name: "Create localhost template for Nagios to check its host system"
+
+- name: "Archive unused default config files"
+  - commands.cfg
+  - printer.cfg
+  - switch.cfg
+  - windows.cfg
+
+#TODO idea: auto-update Nagios config when server is added to main ansible inventory. Create tags to make it easier
+- name: "Create system templates directory"
+#Will probably need a separate var list for groups like Windows that won't be in Ansible
+
+- name: "Create basic host templates"
+#TODO nested template schema: start with something basic, e.g. Linux server. Then append various roles, e.g. web-linux. Then append group settings, group-web-linux
+
+- name: "Create os version specific templates"
+
+- name: "Create hostgroup templates"
+
+#TODO split this into 2? Ansible-installed scripts and git-installed scripts
+- name: "Copy custom plugins and scripts"
+
+# Maybe split this monstrosity into os_type_commands.cfg files, general_commands.cfg, maybe stick hostname_commands.cfg for one-offs next to host cfgs.
+
+- name: "Create config dirs for hostgroups and subdirs for os types"
+
+#TODO how to organize this: main hostgroup dir (ansible team group) split into os types, so each team has linux, windows, other, etc. subdirs. Each host has its host template, a host-service template stub, and a separate nrpe generated config file.
+- name: "Create host templates in corresponding hostgroup dirs"
+# Include active checks in host templates
+
+- name: "Create hostgroup services template in main hostgroup dir"
+
+
+#TODO check rpm installed systemd unit file for any necessary changes
+
+#TODO make this Let's Encrypt later
+- name: "Install SSL certificate for Nagios"

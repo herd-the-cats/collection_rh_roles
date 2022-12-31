@@ -1,0 +1,55 @@
+# SAMPLE CONFIG SNIPPETS FOR APACHE WEB SERVER
+#
+# This file contains examples of entries that need
+# to be incorporated into your Apache web server
+# configuration file.  Customize the paths, etc. as
+# needed to fit your system.
+
+<Virtualhost *:443>
+ServerName {{ nagios_vhost_fqdn }}
+DocumentRoot /var/www/html
+SSLEngine On
+SSLProtocol +TLSv1.2 -SSLv3 -TLSv1 -TLSv1.1
+SSLCipherSuite HIGH
+
+SSLCertificateFile {{ nagios_vhost_cert }}
+SSLCertificateChainFile {{ nagios_vhost_cert_chain }}
+SSLCertificateKeyFile {{ nagios_vhost_cert_key }}
+
+
+ScriptAlias /nagios/cgi-bin "/usr/lib64/nagios/cgi-bin/"
+
+<Directory "/usr/lib64/nagios/cgi-bin/">
+   SSLRequireSSL
+   Options ExecCGI
+   AllowOverride None
+    <RequireAll>
+       Require all granted
+#      Require host 127.0.0.1
+
+       AuthName "Nagios Access"
+       AuthType Basic
+       AuthUserFile {{ nagios_htpasswd_path }}
+       Require valid-user
+    </RequireAll>
+</Directory>
+
+Alias /nagios "/usr/share/nagios/html"
+
+<Directory "/usr/share/nagios/html">
+   SSLRequireSSL
+   Options None
+   AllowOverride None
+    <RequireAll>
+       Require all granted
+#      Require host 127.0.0.1
+
+       AuthName "Nagios Access"
+       AuthType Basic
+       AuthUserFile {{ nagios_htpasswd_path }}
+       Require valid-user
+    </RequireAll>
+</Directory>
+
+RedirectMatch !^/nagios /nagios
+</Virtualhost>

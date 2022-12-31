@@ -1,0 +1,158 @@
+---
+# defaults file for nagios_server
+#################### NAGIOS INSTALL AND MAIN CONFIG ####################
+nagios_packages:
+- "nagios"
+- "nagios-common"
+- "nagios-contrib"
+- "nagios-plugins-all"
+- "nagios-selinux"
+- "perl-Nagios-Plugin"
+- "pnp4nagios"
+- "httpd"
+
+# This will generate accounts using htpasswd and bcrypt.
+nagios_admins: []
+#- name: foo
+#  pass: bar (Vault me!)
+#- name: baz
+#  pass: oof (Vault me!)
+
+nagios_admin_email: "nagios@localhost"
+nagios_admin_pager: "pagenagios@localhost"
+
+nagios_htpasswd_path: "/etc/httpd/.nagios_htpasswd"
+#TODO configure ldap/htpasswd/mod_authn_form option later
+#nagios_auth_type: ldap
+
+nagios_apache_user: "apache"
+nagios_system_user: "nagios"
+
+nagios_vhost_fqdn: "nagios.example.com"
+
+nagios_vhost_cert: "/etc/pki/tls/certs/example.crt"
+nagios_vhost_cert_chain: "/etc/pki/tls/certs/example-intermediate.crt"
+nagios_vhost_cert_key: "/etc/pki/tls/private/example.key"
+
+# Copy custom plugin files from Ansible controller. Targets $USER2$ directory by default.
+nagios_custom_plugins: []
+
+#################### NAGIOS OBJECT AUTO GENERATION ####################
+#### These settings generate object config from group/host vars of ansible inventory items
+
+nagios_objects_auto_generate: true
+
+# If you want to run the autogen against some Ansible inventory group names besides all, change
+# this variable. Listed systems must be accessible to run setup and gather facts.
+nagios_objects_autogen_groups:
+- "all"
+
+# Individual hosts to exclude from autogen.
+# Manual entries in nagios_objects_list already override any autogen, so no need to add those here.
+nagios_objects_autogen_exclude: []
+
+#################### NAGIOS OBJECT MANUAL CONFIG #######################
+#### Full object description variables are here for manually configuring monitoring
+
+# NOTE: Creating a host object manually in this list will override any auto-generated config from other Ansible "nagios_host_*" variables.
+nagios_objects_list: []
+#- name: hostname
+#  location: location
+#  type: type
+#  team: team
+#  ip: x.x.x.x
+#  use: linux
+#  contacts:
+#  - contact1
+#  - contact2
+#  hostgroups:
+#  - group_a
+#  - group_b
+#  services:
+#  - service_a
+#  - service_b
+#  custom_host_settings:
+#  - "insert custom host settings line 1"
+#  - "insert custom host settings line 2"
+#  custom_services:
+#  - name: "service_c"
+#    cmd: "service_c --custom-option"
+#    description: "Service C check with custom option"
+#    use: "svc_template_c"
+#    contacts: "contact2,contact3"
+#  append_block: |
+#     "Append this whole block at the end of the host object file"
+
+
+nagios_user_macros:
+  USER1: "/usr/lib64/nagios/plugins"
+  USER2: "/usr/lib64/nagios/custom_plugins"
+
+
+
+# Hostgroups for os type, location, and team are automatically created. This is for additional hostgroups the host might be in.
+nagios_hostgroups_list: []
+#- name: "hostgroup_a"
+#  alias: "Host Group A"
+
+# Put hosts in this to delete existing host configs
+nagios_retired_hosts: []
+
+
+nagios_contacts_list: []
+#- name: name
+#  pager: pager
+
+# This could be very large, you may want to use a file lookup or a separate vars file
+nagios_commands_list: []
+#- name: "mycommand"
+#  cmd: "$USER2$/example.sh -H $HOSTADDRESS$"
+
+nagios_notifications_list: []
+
+nagios_event_cmds_list: []
+
+nagios_services_list: []
+#- name: "service_a"
+#  cmd: "service_a.sh"
+#  description: "Service A"
+#  use: "svc_template_a"
+
+
+
+#################### NAGIOS OBJECT TEMPLATES #######################
+#### Create templates with commonly used settings
+# These all go in one templated file
+
+nagios_base_host_templates: []
+#- name: "linux"
+#  host_check_cmd: "check_ssh"
+#- name: "windows"
+#  host_check_cmd: "check_rdp"
+#- name: "network_switch"
+#  host_check_cmd: "check_icmp"
+
+# These second-tier templates each get their own file in the form of "name-base_template"
+nagios_custom_host_templates: []
+#- name: "RHEL7"
+#  use: "linux"
+
+# Base service templates. Example: basic protocol check with default port
+nagios_base_service_templates: []
+#- name: "check_http"
+#  description: "Check HTTP"
+#  cmd: "check_http"
+
+# Custom service templates. Example: changed port for a group of servers. (one-offs should be in a per-host exception)
+nagios_custom_service_templates: []
+#- name: "check_http_8080"
+#  description: "Check HTTP port 8080"
+#  use: "check_http"
+#  cmd: "check_http -p 8080"
+
+
+nagios_cgicfg_settingname
+
+nagios_maincfg_settingname
+
+
