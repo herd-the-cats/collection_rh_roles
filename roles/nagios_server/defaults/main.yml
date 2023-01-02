@@ -11,6 +11,8 @@ nagios_packages:
 - "pnp4nagios"
 - "httpd"
 
+nagios_config_path: "/etc/nagios"
+
 # This will generate accounts using htpasswd and bcrypt.
 nagios_admins: []
 #- name: foo
@@ -88,12 +90,19 @@ nagios_user_macros:
   USER1: "/usr/lib64/nagios/plugins"
   USER2: "/usr/lib64/nagios/custom_plugins"
 
+nagios_custom_plugins_path: "{{ nagios_user_macros.USER2 }}"
 
 
 # Hostgroups for os type, location, and team are automatically created. This is for additional hostgroups the host might be in.
 nagios_hostgroups_list: []
-#- name: "hostgroup_a"
+#- hostgroup_name: "hostgroup_a"
 #  alias: "Host Group A"
+#  members:
+#  - "host1"
+#  - "host2"
+#  hostgroup_members:
+#  - "hostgroup1"
+#  notes: "Example hostgroup"
 
 # Put hosts in this to delete existing host configs
 nagios_retired_hosts: []
@@ -106,53 +115,51 @@ nagios_contacts_list: []
 # This could be very large, you may want to use a file lookup or a separate vars file
 nagios_commands_list: []
 #- name: "mycommand"
-#  cmd: "$USER2$/example.sh -H $HOSTADDRESS$"
+#  line: "$USER2$/example.sh -H $HOSTADDRESS$"
 
-nagios_notifications_list: []
+nagios_notify_cmds_list: []
+#- name: "mynotify"
+#  line: "$USER2$/notify_example.sh -H $HOSTADDRESS$"
 
 nagios_event_cmds_list: []
+#- name: "myevent"
+#  line: "$USER2$/event_example.sh -H $HOSTADDRESS$"
 
 nagios_services_list: []
 #- name: "service_a"
-#  cmd: "service_a.sh"
-#  description: "Service A"
+#  check_command: "service_a.sh"
+#  service_description: "Service A"
 #  use: "svc_template_a"
 
 
 
 #################### NAGIOS OBJECT TEMPLATES #######################
 #### Create templates with commonly used settings
-# These all go in one templated file
 
+# Basic host templates for various OS or hardware
 nagios_base_host_templates: []
 #- name: "linux"
-#  host_check_cmd: "check_ssh"
+#  check_command: "check_ssh"
 #- name: "windows"
-#  host_check_cmd: "check_rdp"
+#  check_command: "check_rdp"
 #- name: "network_switch"
-#  host_check_cmd: "check_icmp"
+#  check_command: "check_ping"
 
-# These second-tier templates each get their own file in the form of "name-base_template"
+# Custom host templates. One-offs should simply use per-host exceptions
 nagios_custom_host_templates: []
 #- name: "RHEL7"
 #  use: "linux"
 
 # Base service templates. Example: basic protocol check with default port
-nagios_base_service_templates: []
+nagios_base_svc_templates: []
 #- name: "check_http"
-#  description: "Check HTTP"
-#  cmd: "check_http"
+#  service_description: "Check HTTP"
+#  check_command: "check_http"
 
-# Custom service templates. Example: changed port for a group of servers. (one-offs should be in a per-host exception)
-nagios_custom_service_templates: []
+# Custom service templates. Example: changed port for a group of servers. One-offs should be in a per-service exception.
+nagios_custom_svc_templates: []
 #- name: "check_http_8080"
-#  description: "Check HTTP port 8080"
+#  service_description: "Check HTTP port 8080"
 #  use: "check_http"
-#  cmd: "check_http -p 8080"
-
-
-nagios_cgicfg_settingname
-
-nagios_maincfg_settingname
-
+#  check_command: "check_http -p 8080"
 

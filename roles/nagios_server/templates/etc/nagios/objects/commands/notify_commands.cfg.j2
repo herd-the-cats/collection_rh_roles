@@ -1,5 +1,4 @@
-
-{% for command in nagios_commands_list %}
+{% for command in nagios_notify_cmds_list %}
 define command {
 
 command_name    {{ command.name }}
@@ -7,4 +6,3 @@ command_line    {{ command.line }}
 
 }
 {% endfor %}
-

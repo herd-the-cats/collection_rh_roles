@@ -29,6 +29,7 @@ log_file=/var/log/nagios/nagios.log
 #cfg_file=/etc/nagios/objects/commands.cfg
 cfg_file=/etc/nagios/objects/contacts.cfg
 cfg_file=/etc/nagios/objects/timeperiods.cfg
+cfg_file=/etc/nagios/objects/hostgroups.cfg
 #cfg_file=/etc/nagios/objects/templates.cfg
 
 # Definitions for monitoring the local (Linux) host
@@ -54,6 +55,7 @@ cfg_file=/etc/nagios/objects/localhost.cfg
 #cfg_dir=/etc/nagios/routers
 cfg_dir=/etc/nagios/objects/commands
 cfg_dir=/etc/nagios/objects/host_templates
+cfg_dir=/etc/nagios/objects/svc_templates
 # Templated object directories start here
 {% for path in nagios_object_paths | unique %}
 cfg_dir=/etc/nagios/objects{{ path }}

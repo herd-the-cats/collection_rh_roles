@@ -56,14 +56,14 @@
 - name: "Create cgi.cfg template"
   ansible.builtin.template:
     src: "etc/nagios/cgi.cfg.j2"
-    dest: "/etc/nagios/cgi.cfg"
+    dest: "{{ nagios_config_path }}/cgi.cfg"
     mode: 0644
     owner: "root"
     group: "root"
   become: true
 
 - name: "Include tasks to build combined list of Ansible auto-gen and manually specified (non-Ansible) objects to be monitored."
-  ansible.builtin.include_tasks: "build_host_list.yml"
+  ansible.builtin.include_tasks: "build_object_list.yml"
   throttle: 1
 
 - name: "Set path variable from each object's type, team, and location"
@@ -74,15 +74,28 @@
 - name: "Create nagios.cfg template"
   ansible.builtin.template:
     src: "etc/nagios/nagios.cfg.j2"
-    dest: "/etc/nagios/nagios.cfg"
+    dest: "{{ nagios_config_path }}/nagios.cfg"
     mode: 0644
     owner: "root"
     group: "root"
   become: true
 
+- name: "Archive unused default config files outside of the objects directory"
+  ansible.builtin.command: "mv -v {{ nagios_config_path }}/objects/{{ item }} {{ nagios_config_path }}/{{ item }}.sample"
+  args:
+    removes: "{{ nagios_config_path }}/objects/{{ item }}"
+    creates: "{{ nagios_config_path }}/{{ item }}.sample"
+  loop:
+  - "commands.cfg"
+  - "printer.cfg"
+  - "switch.cfg"
+  - "windows.cfg"
+  - "templates.cfg"
+  become: true
+
 - name: "Create all unique object directory paths"
   ansible.builtin.file:
-    path: "/etc/nagios/objects{{ item }}"
+    path: "{{ nagios_config_path }}/objects{{ item }}"
     type: "directory"
     state: "present"
     owner: "root"
@@ -95,7 +108,7 @@
 - name: "Create resource.cfg template (user macros)"
   ansible.builtin.template:
     src: "etc/nagios/private/resource.cfg.j2"
-    dest: "/etc/nagios/private/resource.cfg"
+    dest: "{{ nagios_config_path }}/private/resource.cfg"
     owner: "root"
     group: "root"
     mode: 0644
@@ -103,7 +116,7 @@
 
 - name: "Create commands config directory"
   ansible.builtin.file:
-    path: "/etc/nagios/objects/commands"
+    path: "{{ nagios_config_path }}/objects/commands"
     type: "directory"
     state: "present"
     owner: "root"
@@ -114,44 +127,127 @@
 - name: "Create main commands template"
   ansible.builtin.template:
     src: "etc/nagios/objects/commands/commands.cfg.j2"
-    dest: "/etc/nagios/objects/commands/commands.cfg"
+    dest: "{{ nagios_config_path }}/objects/commands/commands.cfg"
     owner: "root"
     group: "root"
     mode: 0644
   become: true
 
+- name: "Create notify commands template"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/commands/notify_commands.cfg.j2"
+    dest: "{{ nagios_config_path }}/objects/commands/notify_commands.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+
+- name: "Create event commands template"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/commands/event_commands.cfg.j2"
+    dest: "{{ nagios_config_path }}/objects/commands/event_commands.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
 #- name: "Create localhost template for Nagios to check its host system"
 
-- name: "Archive unused default config files"
-  - commands.cfg
-  - printer.cfg
-  - switch.cfg
-  - windows.cfg
 
 #TODO idea: auto-update Nagios config when server is added to main ansible inventory. Create tags to make it easier
-- name: "Create system templates directory"
-#Will probably need a separate var list for groups like Windows that won't be in Ansible
+- name: "Create host templates directory"
+  ansible.builtin.file:
+    path: "{{ nagios_config_path }}/objects/host_templates"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "{{ nagios_system_user }}"
+    mode: 0750
+  become: true
 
 - name: "Create basic host templates"
-#TODO nested template schema: start with something basic, e.g. Linux server. Then append various roles, e.g. web-linux. Then append group settings, group-web-linux
+  ansible.builtin.template:
+    src: "etc/nagios/objects/host_templates/base_host.cfg.j2"
+    dest: "/etc/nagios/objects/host_templates/{{ item }}_base_host.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  loop: "{{ nagios_base_host_templates }}"
 
-- name: "Create os version specific templates"
+- name: "Create custom host templates"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/host_templates/custom_host.cfg.j2"
+    dest: "/etc/nagios/objects/host_templates/{{ item }}_host.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  loop: "{{ nagios_custom_host_templates }}"
 
-- name: "Create hostgroup templates"
+- name: "Create service templates directory"
+  ansible.builtin.file:
+    path: "{{ nagios_config_path }}/objects/svc_templates"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "{{ nagios_system_user }}"
+    mode: 0750
+  become: true
 
-#TODO split this into 2? Ansible-installed scripts and git-installed scripts
-- name: "Copy custom plugins and scripts"
+- name: "Create base service templates"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/svc_templates/base_svc.cfg.j2"
+    dest: "/etc/nagios/objects/svc_templates/{{ item }}_base_svc.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  loop: "{{ nagios_base_svc_templates }}"
 
-# Maybe split this monstrosity into os_type_commands.cfg files, general_commands.cfg, maybe stick hostname_commands.cfg for one-offs next to host cfgs.
+- name: "Create custom service templates"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/svc_templates/custom_svc.cfg.j2"
+    dest: "/etc/nagios/objects/svc_templates/{{ item }}_svc.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  loop: "{{ nagios_custom_svc_templates }}"
 
-- name: "Create config dirs for hostgroups and subdirs for os types"
+- name: "Create hostgroups"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/hostgroups.cfg.j2"
+    dest: "/etc/nagios/objects/hostgroups.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
 
-#TODO how to organize this: main hostgroup dir (ansible team group) split into os types, so each team has linux, windows, other, etc. subdirs. Each host has its host template, a host-service template stub, and a separate nrpe generated config file.
-- name: "Create host templates in corresponding hostgroup dirs"
-# Include active checks in host templates
+- name: "Create directory for custom plugins/scripts"
+  ansible.builtin.file:
+    path: "{{ nagios_custom_plugins_path }}"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "root"
+    mode: 0755
+  become: true
 
-- name: "Create hostgroup services template in main hostgroup dir"
+- name: "Copy custom plugins/scripts (USER2 macro by default)"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ nagios_custom_plugins_path }}/{{ item | basename }}"
+    owner: "root"
+    group: "root"
+    mode: 0755
+  loop: "{{ lookup('fileglob', 'plugins/*', wantlist=True) }}"
+  become: true
 
+- name: "Create contacts template"
+
+- name: "Create object templates for each host and its services"
+
+- name: "Archive and remove any retired host objects"
 
 #TODO check rpm installed systemd unit file for any necessary changes
 
