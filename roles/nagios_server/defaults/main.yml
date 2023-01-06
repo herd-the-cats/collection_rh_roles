@@ -55,8 +55,10 @@ nagios_objects_autogen_exclude: []
 
 #################### NAGIOS OBJECT MANUAL CONFIG #######################
 #### Full object description variables are here for manually configuring monitoring
+# NOTE for commented examples, anything appended with "[*]" is a required attribute to define in a variable for the templates to work.
+# See template files for any other default values for any non-required attributes.
 
-# NOTE: Creating a host object manually in this list will override any auto-generated config from other Ansible "nagios_host_*" variables.
+# NOTE Creating a host object manually in this following list will override any auto-generated config from other Ansible "nagios_host_*" variables.
 nagios_objects_list: []
 #- name: hostname
 #  location: location
@@ -95,35 +97,51 @@ nagios_custom_plugins_path: "{{ nagios_user_macros.USER2 }}"
 
 # Hostgroups for os type, location, and team are automatically created. This is for additional hostgroups the host might be in.
 nagios_hostgroups_list: []
-#- hostgroup_name: "hostgroup_a"
-#  alias: "Host Group A"
-#  members:
+#- hostgroup_name: "hostgroup_a" [*]
+#  alias: "Host Group A" [*]
+#  members: [*]
 #  - "host1"
 #  - "host2"
 #  hostgroup_members:
 #  - "hostgroup1"
 #  notes: "Example hostgroup"
+#  notes_url: "http://example.com/hostgroup_notes"
+#  action_url: "http://example.com/hostgroup_actions"
 
 # Put hosts in this to delete existing host configs
-nagios_retired_hosts: []
+nagios_retired_objects: []
 
 
 nagios_contacts_list: []
-#- name: name
-#  pager: pager
+#- contact_name: "name" [*]
+#  alias: "Alias Name"
+#  host_notifications_enabled: "1"
+#  service_notifications_enabled: "1"
+#  host_notification_period: "24x7"
+#  service_notification_period: "24x7"
+#  host_notification_options: "d,u,r,f"
+#  service_notification_options: "w,u,c,r,f"
+#  service_notification_commands:   "notify-by-email,notify-by-sms"  [*]
+#  host_notification_commands:      "host-notify-by-email" [*]
+#  email:     jdoe@localhost.localdomain  [*] (or pager)
+#  pager:     555-5555@pagergateway.localhost.localdomain [*] (or email)
+## NOTE address1 through 6 valid
+#  address1:    xxxxx.xyyy@icq.com
+#  address2:    555-555-5555
+#  can_submit_commands:    1
 
 # This could be very large, you may want to use a file lookup or a separate vars file
 nagios_commands_list: []
-#- name: "mycommand"
-#  line: "$USER2$/example.sh -H $HOSTADDRESS$"
+#- name: "mycommand" [*]
+#  line: "$USER2$/example.sh -H $HOSTADDRESS$" [*]
 
 nagios_notify_cmds_list: []
-#- name: "mynotify"
-#  line: "$USER2$/notify_example.sh -H $HOSTADDRESS$"
+#- name: "mynotify" [*]
+#  line: "$USER2$/notify_example.sh -H $HOSTADDRESS$" [*]
 
 nagios_event_cmds_list: []
-#- name: "myevent"
-#  line: "$USER2$/event_example.sh -H $HOSTADDRESS$"
+#- name: "myevent" [*]
+#  line: "$USER2$/event_example.sh -H $HOSTADDRESS$" [*]
 
 nagios_services_list: []
 #- name: "service_a"
@@ -138,28 +156,60 @@ nagios_services_list: []
 
 # Basic host templates for various OS or hardware
 nagios_base_host_templates: []
-#- name: "linux"
-#  check_command: "check_ssh"
-#- name: "windows"
-#  check_command: "check_rdp"
-#- name: "network_switch"
-#  check_command: "check_ping"
+#- name: "linux" [*]
+#  check_command: "check_ssh" [*]
+#  max_check_attempts: '3'
+#  check_interval: '5'
+#  retry_interval: '2'
+#  check_period: '24x7'
+#  event_handler: "/usr/lib64/nagios/custom_plugins/event_handler.sh"
+#  event_handler_enabled: '1'
+#  low_flap_threshold: '20'
+#  high_flap_threshold: '50'
+#  flap_detection_enabled: '1'
+#  process_perf_data: '1'
+#  notification_interval: '10'
+#  first_notification_delay: '0'
+#  notification_period: '24x7'
+#  notification_options: 'd,u,r,f,s'
+#  notifications_enabled: '1'
+#  icon_image: "/usr/share/nagios/html/images/linux_host.png"
 
-# Custom host templates. One-offs should simply use per-host exceptions
+# Custom host templates. One-offs should just use per-host exceptions
 nagios_custom_host_templates: []
-#- name: "RHEL7"
-#  use: "linux"
+#- name: "RHEL7" [*]
+#  use: "linux" [*]
+#  check_command: "check_ssh" [*]
+#etc. same as above
 
 # Base service templates. Example: basic protocol check with default port
 nagios_base_svc_templates: []
-#- name: "check_http"
-#  service_description: "Check HTTP"
-#  check_command: "check_http"
+#- name: "check_http" [*]
+#  service_description: "Check HTTP" [*]
+#  check_command: "check_http" [*]
+#  max_check_attempts: '3'
+#  check_interval: '5'
+#  retry_interval: '2'
+#  check_period: '24x7'
+#  event_handler: "/usr/lib64/nagios/custom_plugins/svc_event_handler.sh"
+#  event_handler_enabled: '1'
+#  low_flap_threshold: '20'
+#  high_flap_threshold: '50'
+#  flap_detection_enabled: '1'
+#  process_perf_data: '1'
+#  notification_interval: '10'
+#  first_notification_delay: '0'
+#  notification_period: '24x7'
+#  notification_options: 'd,u,r,f,s'
+#  notifications_enabled: '1'
+#  icon_image: "/usr/share/nagios/html/images/http_svc.png"
+
 
 # Custom service templates. Example: changed port for a group of servers. One-offs should be in a per-service exception.
 nagios_custom_svc_templates: []
-#- name: "check_http_8080"
-#  service_description: "Check HTTP port 8080"
-#  use: "check_http"
-#  check_command: "check_http -p 8080"
+#- name: "check_http_8080" [*]
+#  use: "check_http" [*]
+#  service_description: "Check HTTP port 8080" [*]
+#  check_command: "check_http -p 8080" [*]
+#etc. same as above
 

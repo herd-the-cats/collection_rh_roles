@@ -5,10 +5,10 @@ max_check_attempts    {{ item.max_check_attempts | default('3') }}
 check_interval    {{ item.check_interval | default('5') }} # default 5 minutes
 retry_interval    {{ item.retry_interval | default('2') }} # default 2 minutes
 check_period    {{ item.check_period | default('24x7') }}
-{% if item.event_handler is defined %}
+{% if item.event_handler is defined -%}
 event_handler   {{ item.event_handler }}
 event_handler_enabled    1
-{% endif %}
+{% endif -%}
 low_flap_threshold    {{ item.low_flap_threshold | default('20') }}
 high_flap_threshold    {{ item.high_flap_threshold | default('50') }}
 flap_detection_enabled    {{ item.flap_detection_enabled | default('1') }}
@@ -18,9 +18,9 @@ first_notification_delay    {{ item.first_notification_delay | default('0') }}
 notification_period    {{ item.notification_period | default('24x7') }}
 notification_options    {{ item.notification_options | default('d,u,r,f,s') }}
 notifications_enabled    {{ item.notifications_enabled | default('1') }}
-{% if item.icon_image is defined %}
+{% if item.icon_image is defined -%}
 icon_image    {{ item.icon_image }}
-{% endif %}
+{% endif -%}
 
 name    {{ item.name }}_base_host
 register    0

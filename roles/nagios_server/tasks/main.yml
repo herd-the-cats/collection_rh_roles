@@ -10,7 +10,6 @@
   tags:
   - always
 
-
 - name: "Install required Nagios server and plugin packages"
   ansible.builtin.package:
     name: "{{ nagios_packages }}"
@@ -244,12 +243,23 @@
   become: true
 
 - name: "Create contacts template"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/contacts.cfg.j2"
+    dest: "/etc/nagios/objects/contacts.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+
+- name: "Create services templates"
 
 - name: "Create object templates for each host and its services"
 
 - name: "Archive and remove any retired host objects"
 
 #TODO check rpm installed systemd unit file for any necessary changes
+
+#TODO make Nagios reload handler, add validation
 
 #TODO make this Let's Encrypt later
 - name: "Install SSL certificate for Nagios"

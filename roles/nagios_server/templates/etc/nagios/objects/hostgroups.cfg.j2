@@ -1,6 +1,7 @@
-# Build default hostgroups for type, team, and location
+################################################################################
+# Auto-generated default hostgroups for type, team, and location
 {% for type in nagios_objects_list | map(attribute='type') | unique %}
-#Default auto generated hostgroup
+# auto type hostgroup
 define hostgroup {
 hostgroup_name    {{ type }}_type
 alias    Auto Hostgroup for {{ type }}
@@ -9,7 +10,7 @@ members    {{ nagios_objects_list | selectattr('type','equalto', type) | map(att
 {% endfor %}
 
 {% for team in nagios_objects_list | map(attribute='team') | unique %}
-#Default auto generated hostgroup
+# auto team hostgroup
 define hostgroup {
 hostgroup_name    {{ team }}_team
 alias    Auto Hostgroup for {{ team }}
@@ -18,7 +19,7 @@ members    {{ nagios_objects_list | selectattr('team','equalto', team) | map(att
 {% endfor %}
 
 {% for team in nagios_objects_list | map(attribute='location') | unique %}
-#Default auto generated hostgroup
+# auto location hostgroup
 define hostgroup {
 hostgroup_name    {{ location }}_location
 alias    Auto Hostgroup for {{ location }}
@@ -26,24 +27,26 @@ members    {{ nagios_objects_list | selectattr('location','equalto', location) |
 }
 {% endfor %}
 
+################################################################################
+# Manually specified hostgroups
 {% for hostgroup in nagios_hostgroups_list %}
 define hostgroup {
 hostgroup_name    {{ hostgroup.hostgroup_name }}
-alias    {{ hostgroup.alias }}
-{% if hostgroup.members is defined %}
+alias    {{ hostgroup.alias | default(hostgroup.hostgroup_name) }}
+  {%- if hostgroup.members is defined -%}
 members    {{ hostgroup.members | join(',') }}
-{% endif %}
-{% if hostgroup.hostgroup_members is defined %}
+  {%- endif -%}
+  {%- if hostgroup.hostgroup_members is defined -%}
 hostgroup_members    {{ hostgroup.hostgroup_members | join(',') }}
-{% endif %}
-{% if hostgroup.notes is defined %}
+  {%- endif -%}
+  {%- if hostgroup.notes is defined -%}
 notes    {{ hostgroup.notes }}
-{% endif %}
-{% if hostgroup.notes_url is defined %}
+  {%- endif -%}
+  {%- if hostgroup.notes_url is defined -%}
 notes_url    {{ hostgroup.notes_url }}
-{% endif %}
-{% if hostgroup.action_url is defined %}
+  {%- endif -%}
+  {%- if hostgroup.action_url is defined -%}
 action_url    {{ hostgroup.action_url }}
-{% endif %}
+  {%- endif -%}
 }
 {% endfor %}
