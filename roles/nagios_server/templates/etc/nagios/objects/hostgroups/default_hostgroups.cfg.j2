@@ -1,0 +1,29 @@
+################################################################################
+# Auto-generated default hostgroups for type, team, and location
+  {%- for type in nagios_hostcfgs_list | map(attribute='type') | unique -%}
+# auto type hostgroup
+define hostgroup {
+hostgroup_name    {{ type }}_type_view
+alias    Auto Hostgroup for {{ type }}
+members    {{ nagios_hostcfgs_list | selectattr('type','equalto', type) | map(attribute='name') | list | join(',') }}
+}
+  {%- endfor -%}
+
+  {%- for team in nagios_hostcfgs_list | map(attribute='team') | unique -%}
+# auto team hostgroup
+define hostgroup {
+hostgroup_name    {{ team }}_team_view
+alias    Auto Hostgroup for {{ team }}
+members    {{ nagios_hostcfgs_list | selectattr('team','equalto', team) | map(attribute='name') | list | join(',') }}
+}
+  {%- endfor -%}
+
+  {%- for location in nagios_hostcfgs_list | map(attribute='location') | unique -%}
+# auto location hostgroup
+define hostgroup {
+hostgroup_name    {{ location }}_location_view
+alias    Auto Hostgroup for {{ location }}
+members    {{ nagios_hostcfgs_list | selectattr('location','equalto', location) | map(attribute='name') | list | join(',') }}
+}
+  {%- endfor -%}
+

@@ -1,0 +1,127 @@
+define hostgroup {
+hostgroup_name    {{ item.hostgroup_name }}
+alias    {{ item.alias | default(item.hostgroup_name) }}
+  {%- if item.members is defined -%}
+members    {{ item.members | join(',') }}
+  {%- endif -%}
+  {%- if item.hostgroup_members is defined -%}
+hostgroup_members    {{ item.hostgroup_members | join(',') }}
+  {%- endif -%}
+  {%- if item.notes is defined -%}
+notes    {{ item.notes }}
+  {%- endif -%}
+  {%- if item.notes_url is defined -%}
+notes_url    {{ item.notes_url }}
+  {%- endif -%}
+  {%- if item.action_url is defined -%}
+action_url    {{ item.action_url }}
+  {%- endif -%}
+}
+
+  {%- if item.services is defined -%}
+    {%- for hg_svc in item.services -%}
+define service {
+hostgroup_name    {{ item.hostgroup_name }}
+use    {{ hg_svc.use }}
+contacts    {{ hg_svc.contacts }}
+  {%- if hg_svc.service_description is defined -%}
+service_description    {{ hg_svc.service_description }}
+  {%- endif -%}
+  {%- if hg_svc.is_volatile is defined -%}
+is_volatile    {{ hg_svc.is_volatile }}
+  {%- endif -%}
+  {%- if hg_svc.initial_state is defined -%}
+initial_state    {{ hg_svc.initial_state }}
+  {%- endif -%}
+  {%- if hg_svc.max_check_attempts is defined -%}
+max_check_attempts    {{ hg_svc.max_check_attempts }}
+  {%- endif -%}
+  {%- if hg_svc.check_interval is defined -%}
+check_interval    {{ hg_svc.check_interval }}
+  {%- endif -%}
+  {%- if hg_svc.retry_interval is defined -%}
+retry_interval    {{ hg_svc.retry_interval }}
+  {%- endif -%}
+  {%- if hg_svc.active_checks_enabled is defined -%}
+active_checks_enabled    {{ hg_svc.active_checks_enabled }}
+  {%- endif -%}
+  {%- if hg_svc.passive_checks_enabled is defined -%}
+passive_checks_enabled    {{ hg_svc.passive_checks_enabled }}
+  {%- endif -%}
+  {%- if hg_svc.check_period is defined -%}
+check_period    {{ hg_svc.check_period }}
+  {%- endif -%}
+  {%- if hg_svc.obsess_over_service is defined -%}
+obsess_over_service    {{ hg_svc.obsess_over_service }}
+  {%- endif -%}
+  {%- if hg_svc.check_freshness is defined -%}
+check_freshness    {{ hg_svc.check_freshness }}
+  {%- endif -%}
+  {%- if hg_svc.freshness_threshold is defined -%}
+freshness_threshold    {{ hg_svc.freshness_threshold }}
+  {%- endif -%}
+  {%- if hg_svc.event_handler is defined -%}
+event_handler   {{ hg_svc.event_handler }}
+event_handler_enabled    1
+  {%- endif -%}
+  {%- if hg_svc.low_flap_threshold is defined -%}
+low_flap_threshold    {{ hg_svc.low_flap_threshold }}
+  {%- endif -%}
+  {%- if hg_svc.high_flap_threshold is defined -%}
+high_flap_threshold    {{ hg_svc.high_flap_threshold }}
+  {%- endif -%}
+  {%- if hg_svc.flap_detection_enabled is defined -%}
+flap_detection_enabled    {{ hg_svc.flap_detection_enabled }}
+  {%- endif -%}
+  {%- if hg_svc.flap_detection_options is defined -%}
+flap_detection_options    {{ hg_svc.flap_detection_options }}
+  {%- endif -%}
+  {%- if hg_svc.process_perf_data is defined -%}
+process_perf_data    {{ hg_svc.process_perf_data }}
+  {%- endif -%}
+  {%- if hg_svc.retain_status_information is defined -%}
+retain_status_information    {{ hg_svc.retain_status_information }}
+  {%- endif -%}
+  {%- if hg_svc.retain_nonstatus_information is defined -%}
+retain_nonstatus_information    {{ hg_svc.retain_nonstatus_information }}
+  {%- endif -%}
+  {%- if hg_svc.notification_interval is defined -%}
+notification_interval    {{ hg_svc.notification_interval }}
+  {%- endif -%}
+  {%- if hg_svc.first_notification_delay is defined -%}
+first_notification_delay    {{ hg_svc.first_notification_delay }}
+  {%- endif -%}
+  {%- if hg_svc.notification_period is defined -%}
+notification_period    {{ hg_svc.notification_period }}
+  {%- endif -%}
+  {%- if hg_svc.notification_options is defined -%}
+notification_options    {{ hg_svc.notification_options }}
+  {%- endif -%}
+  {%- if hg_svc.notifications_enabled is defined -%}
+notifications_enabled    {{ hg_svc.notifications_enabled }}
+  {%- endif -%}
+  {%- if hg_svc.contact_groups is defined -%}
+# These aren't created in this Ansible role but you can still specify them here
+contact_groups    {{ hg_svc.contact_groups }}
+  {%- endif -%}
+  {%- if hg_svc.stalking_options is defined -%}
+stalking_options {{ hg_svc.stalking_options }}
+  {%- endif -%}
+  {%- if hg_svc.notes is defined -%}
+notes    {{ hg_svc.notes }}
+  {%- endif -%}
+  {%- if hg_svc.notes_url is defined -%}
+notes_url    {{ hg_svc.notes_url }}
+  {%- endif -%}
+  {%- if hg_svc.action_url is defined -%}
+action_url    {{ hg_svc.action_url }}
+  {%- endif -%}
+  {%- if hg_svc.icon_image is defined -%}
+icon_image    {{ hg_svc.icon_image }}
+  {%- endif -%}
+  {%- if hg_svc.icon_image_alt is defined -%}
+icon_image_alt    {{ hg_svc.icon_image_alt }}
+  {%- endif -%}
+}
+    {%- endfor -%}
+  {%- endif -%}

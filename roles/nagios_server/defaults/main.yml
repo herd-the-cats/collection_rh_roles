@@ -32,12 +32,10 @@ nagios_system_user: "nagios"
 
 nagios_vhost_fqdn: "nagios.example.com"
 
+# NOTE this role requires an accessory role to install the cert and key files
 nagios_vhost_cert: "/etc/pki/tls/certs/example.crt"
 nagios_vhost_cert_chain: "/etc/pki/tls/certs/example-intermediate.crt"
 nagios_vhost_cert_key: "/etc/pki/tls/private/example.key"
-
-# Copy custom plugin files from Ansible controller. Targets $USER2$ directory by default.
-nagios_custom_plugins: []
 
 #################### NAGIOS OBJECT AUTO GENERATION ####################
 #### These settings generate object config from group/host vars of ansible inventory items
@@ -49,44 +47,32 @@ nagios_objects_auto_generate: true
 nagios_objects_autogen_groups:
 - "all"
 
-# Individual hosts to exclude from autogen.
-# Manual entries in nagios_objects_list already override any autogen, so no need to add those here.
+# Individual hostnames to exclude from autogen.
+# Manual entries in nagios_hostcfgs_list already override any autogen, so no need to add those here.
 nagios_objects_autogen_exclude: []
+#- "hostA"
+#- "hostB"
 
 #################### NAGIOS OBJECT MANUAL CONFIG #######################
 #### Full object description variables are here for manually configuring monitoring
 # NOTE for commented examples, anything appended with "[*]" is a required attribute to define in a variable for the templates to work.
-# See template files for any other default values for any non-required attributes.
+# See template files for the default values of any optional attributes.
 
-# NOTE Creating a host object manually in this following list will override any auto-generated config from other Ansible "nagios_host_*" variables.
-nagios_objects_list: []
-#- name: hostname
-#  location: location
-#  type: type
-#  team: team
-#  ip: x.x.x.x
-#  use: linux
-#  contacts:
-#  - contact1
-#  - contact2
-#  hostgroups:
-#  - group_a
-#  - group_b
+# NOTE Creating a host object manually in this following list will override any auto-generated config from other Ansible "nagios_hostcfg_*" variables.
+nagios_hostcfgs_list: []
+#- host_name: "hostname" [*]
+#  address: x.x.x.x [*]
+#  use: linux [*]
+#  location: location [*]
+#  type: type [*]
+#  team: team [*]
+#  contacts: "contact_a,contact_b"
+#NOTE other optional host object attributes can override the used host template as needed. See host template options.
+#NOTE create new service templates whenever possible instead of overriding many settings here
 #  services:
-#  - service_a
-#  - service_b
-#  custom_host_settings:
-#  - "insert custom host settings line 1"
-#  - "insert custom host settings line 2"
-#  custom_services:
-#  - name: "service_c"
-#    cmd: "service_c --custom-option"
-#    description: "Service C check with custom option"
-#    use: "svc_template_c"
-#    contacts: "contact2,contact3"
-#  append_block: |
-#     "Append this whole block at the end of the host object file"
-
+#  - name: "service_a"
+#    contacts: "contact_a,contact_b"
+#  - name: "service_b"
 
 nagios_user_macros:
   USER1: "/usr/lib64/nagios/plugins"
@@ -104,9 +90,11 @@ nagios_hostgroups_list: []
 #  - "host2"
 #  hostgroup_members:
 #  - "hostgroup1"
-#  notes: "Example hostgroup"
-#  notes_url: "http://example.com/hostgroup_notes"
-#  action_url: "http://example.com/hostgroup_actions"
+#  services:
+#  - use: "svc_template_a" [*] (if using services)
+#    contacts: "contact_a,contact_b" [*] (if using services)
+#NOTE optionally add other service directives here to override template settings. See all settings for service templates.
+# contacts are required for each service for hostgroups because there are no contacts to inherit from hostgroups.
 
 # Put hosts in this to delete existing host configs
 nagios_retired_objects: []
@@ -130,7 +118,6 @@ nagios_contacts_list: []
 #  address2:    555-555-5555
 #  can_submit_commands:    1
 
-# This could be very large, you may want to use a file lookup or a separate vars file
 nagios_commands_list: []
 #- name: "mycommand" [*]
 #  line: "$USER2$/example.sh -H $HOSTADDRESS$" [*]
@@ -143,14 +130,6 @@ nagios_event_cmds_list: []
 #- name: "myevent" [*]
 #  line: "$USER2$/event_example.sh -H $HOSTADDRESS$" [*]
 
-nagios_services_list: []
-#- name: "service_a"
-#  check_command: "service_a.sh"
-#  service_description: "Service A"
-#  use: "svc_template_a"
-
-
-
 #################### NAGIOS OBJECT TEMPLATES #######################
 #### Create templates with commonly used settings
 
@@ -158,58 +137,70 @@ nagios_services_list: []
 nagios_base_host_templates: []
 #- name: "linux" [*]
 #  check_command: "check_ssh" [*]
+#  initial_state: 'o'
 #  max_check_attempts: '3'
 #  check_interval: '5'
 #  retry_interval: '2'
+#  active_checks_enabled: '1'
+#  passive_checks_enabled: '1'
 #  check_period: '24x7'
+#  obsess_over_hosts: '0'
+#  check_freshness: '0'
+#  freshness_threshold: '0'
 #  event_handler: "/usr/lib64/nagios/custom_plugins/event_handler.sh"
-#  event_handler_enabled: '1'
 #  low_flap_threshold: '20'
 #  high_flap_threshold: '50'
 #  flap_detection_enabled: '1'
-#  process_perf_data: '1'
+#  flap_detection_options: 'o,d,u'
+#  process_perf_data: '0'
+#  retain_status_information: '1'
+#  retain_nonstatus_information: '1'
+#  contacts: "contact_a,contact_b"
 #  notification_interval: '10'
 #  first_notification_delay: '0'
 #  notification_period: '24x7'
 #  notification_options: 'd,u,r,f,s'
 #  notifications_enabled: '1'
+#  stalking_options: 'o,d,u'
+#  notes: "notes about host"
+#  notes_url: "http://example.com/system-notes"
+#  action_url: "http://example.com/system-action"
 #  icon_image: "/usr/share/nagios/html/images/linux_host.png"
-
-# Custom host templates. One-offs should just use per-host exceptions
-nagios_custom_host_templates: []
-#- name: "RHEL7" [*]
-#  use: "linux" [*]
-#  check_command: "check_ssh" [*]
-#etc. same as above
 
 # Base service templates. Example: basic protocol check with default port
 nagios_base_svc_templates: []
 #- name: "check_http" [*]
 #  service_description: "Check HTTP" [*]
 #  check_command: "check_http" [*]
+#  is_volatile: '0'
+#  initial_state: 'o'
 #  max_check_attempts: '3'
 #  check_interval: '5'
 #  retry_interval: '2'
+#  active_checks_enabled: '1'
+#  passive_checks_enabled: '1'
 #  check_period: '24x7'
+#  obsess_over_service: '0'
+#  check_freshness: '0'
+#  freshness_threshold: '0'
 #  event_handler: "/usr/lib64/nagios/custom_plugins/svc_event_handler.sh"
 #  event_handler_enabled: '1'
 #  low_flap_threshold: '20'
 #  high_flap_threshold: '50'
 #  flap_detection_enabled: '1'
+#  flap_detection_options: 'o,w,c,u'
 #  process_perf_data: '1'
+#  retain_status_information: '1'
+#  retain_nonstatus_information: '1'
 #  notification_interval: '10'
 #  first_notification_delay: '0'
 #  notification_period: '24x7'
 #  notification_options: 'd,u,r,f,s'
 #  notifications_enabled: '1'
+#  contacts: 'contact_a,contact_b'
+#  stalking_options: 'o,w,u,c,N'
+#  notes: 'System notes'
+#  notes_url: 'http://example.com/system-notes/'
+#  action_url: 'http://example.com/system-action/'
 #  icon_image: "/usr/share/nagios/html/images/http_svc.png"
-
-
-# Custom service templates. Example: changed port for a group of servers. One-offs should be in a per-service exception.
-nagios_custom_svc_templates: []
-#- name: "check_http_8080" [*]
-#  use: "check_http" [*]
-#  service_description: "Check HTTP port 8080" [*]
-#  check_command: "check_http -p 8080" [*]
-#etc. same as above
-
+#  icon_image_alt: 'HTTP Service'

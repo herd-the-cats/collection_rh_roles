@@ -13,19 +13,45 @@
 
 - name: "Collect Nagios information for each play host into a dictionary variable"
   ansible.builtin.set_fact:
-    nagios_object_facts:
-      name: "{{ inventory_hostname }}"
-      location: "{{ nagios_object_location | default('unknown')}}"
-      type: "{{ nagios_object_type | default('generic')}}"
-      team: "{{ nagios_object_team | default('orphaned')}}"
-      ip: "{{ ansible_default_ipv4.address }}"
-      use: "{{ nagios_object_template | default('generic')}}"
-      contacts: "{{ nagios_object_contacts | default([])}}"
-      hostgroups: "{{ nagios_object_hostgroups | default([])}}"
-      services: "{{ nagios_object_services | default([])}}"
-      custom_host_settings: "{{ nagios_object_custom_host_settings | default([])}}"
-      custom_services: "{{ nagios_object_custom_services | default([])}}"
-      append_block: "{{ nagios_object_append_block | default('')}}"
+    nagios_hostcfg_settings:
+      location: "{{ nagios_hostcfg_location | default('unknown')}}"
+      type: "{{ nagios_hostcfg_type | default('generic')}}"
+      team: "{{ nagios_hostcfg_team | default('orphaned')}}"
+      host_name: "{{ item }}"
+      address: "{{ hostvars[item].ansible_default_ipv4.address }}"
+      use: "{{ nagios_hostcfg_template | default('generic')}}"
+      alias: "{{ nagios_hostcfg_alias | default(omit) }}"
+      check_command: "{{ nagios_hostcfg_check_command | default(omit) }}"
+      initial_state: "{{ nagios_hostcfg_initial_state | default(omit) }}"
+      max_check_attempts: "{{ nagios_hostcfg_max_check_attempts | default(omit) }}"
+      check_interval: "{{ nagios_hostcfg_check_interval | default(omit) }}"
+      retry_interval: "{{ nagios_hostcfg_retry_interval | default(omit) }}"
+      active_checks_enabled: "{{ nagios_hostcfg_active_checks_enabled | default(omit) }}"
+      passive_checks_enabled: "{{ nagios_hostcfg_passive_checks_enabled | default(omit) }}"
+      check_period: "{{ nagios_hostcfg_check_period | default(omit) }}"
+      obsess_over_hosts: "{{ nagios_hostcfg_obsess_over_hosts | default(omit) }}"
+      check_freshness: "{{ nagios_hostcfg_check_freshness | default(omit) }}"
+      freshness_threshold: "{{ nagios_hostcfg_freshness_threshold | default(omit) }}"
+      event_handler: "{{ nagios_hostcfg_event_handler | default(omit) }}"
+      low_flap_threshold: "{{ nagios_hostcfg_low_flap_threshold | default(omit) }}"
+      high_flap_threshold: "{{ nagios_hostcfg_high_flap_threshold | default(omit) }}"
+      flap_detection_enabled: "{{ nagios_hostcfg_flap_detection_enabled | default(omit) }}"
+      flap_detection_options: "{{ nagios_hostcfg_flap_detection_options | default(omit) }}"
+      process_perf_data: "{{ nagios_hostcfg_process_perf_data | default(omit) }}"
+      retain_status_information: "{{ nagios_hostcfg_retain_status_information | default(omit) }}"
+      retain_nonstatus_information: "{{ nagios_hostcfg_retain_nonstatus_information | default(omit) }}"
+      contacts: "{{ nagios_hostcfg_contacts | default(omit)}}"
+      notification_interval: "{{ nagios_hostcfg_notification_interval | default(omit) }}"
+      first_notification_delay: "{{ nagios_hostcfg_first_notification_delay | default(omit)}}"
+      notification_period: "{{ nagios_hostcfg_notification_period | default(omit)}}"
+      notification_options: "{{ nagios_hostcfg_notification_options | default(omit)}}"
+      notifications_enabled: "{{ nagios_hostcfg_notifications_enabled | default(omit)}}"
+      stalking_options: "{{ nagios_hostcfg_stalking_options | default(omit)}}"
+      notes: "{{ nagios_hostcfg_notes | default(omit) }}"
+      notes_url: "{{ nagios_hostcfg_notes_url | default(omit) }}"
+      action_url: "{{ nagios_hostcfg_action_url | default(omit) }}"
+      icon_image: "{{ nagios_hostcfg_icon_image | default(omit) }}"
+      services: "{{ nagios_hostcfg_services | default(omit)}}"
   when:
   - item not in nagios_objects_autogen_exclude
   - nagios_objects_auto_generate | bool
@@ -35,7 +61,7 @@
 
 - name: "Combine hostvars of play hosts into dynamic monitored hosts list"
   ansible.builtin.set_fact:
-    nagios_objects_auto_list: "{{ nagios_objects_auto_list | default([]) + [ hostvars[item].nagios_object_facts ] }}"
+    nagios_hostcfgs_auto_list: "{{ nagios_hostcfgs_auto_list | default([]) + [ hostvars[item].nagios_hostcfg_settings ] }}"
   loop: "{{ nagios_autogen_objects }}"
   when:
   - item not in nagios_objects_autogen_exclude
@@ -44,8 +70,8 @@
 
 - name: "Loop through play hosts to create a list of hosts in the desired format"
   ansible.builtin.set_fact:
-    nagios_objects_list: '{{ nagios_objects_list | default([]) + [ item ] }}'
-  loop: "{{ nagios_objects_auto_list }}"
+    nagios_hostcfgs_list: '{{ nagios_hostcfgs_list | default([]) + [ item ] }}'
+  loop: "{{ nagios_hostcfgs_auto_list }}"
   when:
-  - item.name not in nagios_objects_list | map(attribute="name") | list
+  - item.host_name not in nagios_hostcfgs_list | map(attribute="host_name") | list
   - nagios_objects_auto_generate | bool

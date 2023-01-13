@@ -1,12 +1,15 @@
 ---
 # tasks file for nagios_server
 
+# boilerplate variable imports to support later versions or other distros
 - name: "Include distro specific variables"
   ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
-  - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
-  - "{{ ansible_distribution }}.yml"
-  - "{{ ansible_os_family }}.yml"
+    files:
+    - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+    skip: true
   tags:
   - always
 
@@ -17,7 +20,7 @@
   become: true
 
 # More info on apache and bcrypt https://www.endpointdev.com/blog/2016/02/bonked-by-basicauth-because-bcrypt/
-#TODO check for idempotency of htpasswd command since the module doesn't support bcrypt
+#TODO make htpasswd shell command idempotent since the module doesn't support bcrypt
 - name: "Create empty file for htpasswd"
   ansible.builtin.file:
     path: "{{ nagios_htpasswd_path }}"
@@ -67,8 +70,8 @@
 
 - name: "Set path variable from each object's type, team, and location"
   ansible.builtin.set_fact:
-    nagios_object_paths: "{{ nagios_object_paths | default([]) + [ '/' ~ item.type ~ '/' ~ item.team ~ '/' ~ item.location ] }}"
-  loop: "{{ nagios_objects_list }}"
+    nagios_hostcfgs_paths: "{{ nagios_hostcfgs_paths | default([]) + [ '/' ~ item.type ~ '/' ~ item.team ~ '/' ~ item.location ] }}"
+  loop: "{{ nagios_hostcfgs_list }}"
 
 - name: "Create nagios.cfg template"
   ansible.builtin.template:
@@ -92,15 +95,17 @@
   - "templates.cfg"
   become: true
 
+#TODO timeperiod template
+
 - name: "Create all unique object directory paths"
   ansible.builtin.file:
-    path: "{{ nagios_config_path }}/objects{{ item }}"
+    path: "{{ nagios_config_path }}/objects/hosts{{ item }}"
     type: "directory"
     state: "present"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
-  loop: "{{ nagios_objects_paths | unique }}"
+  loop: "{{ nagios_hostcfgs_paths | unique }}"
   become: true
 
 # Note: the objects and private dirs have permissions root:nagios:0640
@@ -149,10 +154,8 @@
     group: "root"
     mode: 0644
   become: true
-#- name: "Create localhost template for Nagios to check its host system"
+#TODO - name: "Create localhost template for Nagios to check its host system"
 
-
-#TODO idea: auto-update Nagios config when server is added to main ansible inventory. Create tags to make it easier
 - name: "Create host templates directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/host_templates"
@@ -163,25 +166,15 @@
     mode: 0750
   become: true
 
-- name: "Create basic host templates"
+- name: "Create base host templates"
   ansible.builtin.template:
     src: "etc/nagios/objects/host_templates/base_host.cfg.j2"
-    dest: "/etc/nagios/objects/host_templates/{{ item }}_base_host.cfg"
+    dest: "{{ nagios_config_path }}/objects/host_templates/{{ item.name }}_host_template.cfg"
     owner: "root"
     group: "root"
     mode: 0644
   become: true
   loop: "{{ nagios_base_host_templates }}"
-
-- name: "Create custom host templates"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/host_templates/custom_host.cfg.j2"
-    dest: "/etc/nagios/objects/host_templates/{{ item }}_host.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-  loop: "{{ nagios_custom_host_templates }}"
 
 - name: "Create service templates directory"
   ansible.builtin.file:
@@ -196,30 +189,40 @@
 - name: "Create base service templates"
   ansible.builtin.template:
     src: "etc/nagios/objects/svc_templates/base_svc.cfg.j2"
-    dest: "/etc/nagios/objects/svc_templates/{{ item }}_base_svc.cfg"
+    dest: "{{ nagios_config_path }}/objects/svc_templates/{{ item.name }}_svc_template.cfg"
     owner: "root"
     group: "root"
     mode: 0644
   become: true
   loop: "{{ nagios_base_svc_templates }}"
 
-- name: "Create custom service templates"
+- name: "Create hostgroups directory"
+  ansible.builtin.file:
+    path: "{{ nagios_config_path }}/objects/hostgroups"
+    type: "directory"
+    state: "present"
+    owner: "root"
+    group: "{{ nagios_system_user }}"
+    mode: 0750
+  become: true
+
+- name: "Create default hostgroup views"
   ansible.builtin.template:
-    src: "etc/nagios/objects/svc_templates/custom_svc.cfg.j2"
-    dest: "/etc/nagios/objects/svc_templates/{{ item }}_svc.cfg"
+    src: "etc/nagios/objects/hostgroups/default_hostgroups.cfg.j2"
+    dest: "{{ nagios_config_path }}/objects/hostgroups/default_hostgroups.cfg"
     owner: "root"
     group: "root"
     mode: 0644
   become: true
-  loop: "{{ nagios_custom_svc_templates }}"
 
-- name: "Create hostgroups"
+- name: "Create hostgroup object templates with services"
   ansible.builtin.template:
-    src: "etc/nagios/objects/hostgroups.cfg.j2"
-    dest: "/etc/nagios/objects/hostgroups.cfg"
+    src: "etc/nagios/objects/hostgroups/hostgroups.cfg.j2"
+    dest: "{{ nagios_config_path }}/objects/hostgroups/{{ item.hostgroup_name }}_hostgroup.cfg"
     owner: "root"
     group: "root"
     mode: 0644
+  loop: "{{ nagios_hostgroups_list }}"
   become: true
 
 - name: "Create directory for custom plugins/scripts"
@@ -245,21 +248,26 @@
 - name: "Create contacts template"
   ansible.builtin.template:
     src: "etc/nagios/objects/contacts.cfg.j2"
-    dest: "/etc/nagios/objects/contacts.cfg"
+    dest: "{{ nagios_config_path }}/objects/contacts.cfg"
     owner: "root"
     group: "root"
     mode: 0644
   become: true
 
-- name: "Create services templates"
+- name: "Create host config templates for each host and its services"
+  ansible.builtin.template:
+    src: "etc/nagios/objects/hosts/host.cfg.j2"
+    dest: "{{ nagios_config_path }}/objects/hosts/{{ item.type }}/{{ item.team }}/{{ item.location }}/{{ item.host_name }}.cfg"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  loop: "{{ nagios_hostcfgs_list }}"
+  become: true
 
-- name: "Create object templates for each host and its services"
-
-- name: "Archive and remove any retired host objects"
+#TODO this may need an optional cleaning task that deletes any hosts that don't match the hostcfgs list, but
+# that's difficult to make idempotent.
+#- name: "Archive and remove any retired host objects"
 
 #TODO check rpm installed systemd unit file for any necessary changes
 
-#TODO make Nagios reload handler, add validation
-
-#TODO make this Let's Encrypt later
-- name: "Install SSL certificate for Nagios"
+#TODO make Nagios reload handler, add final config validation conditional

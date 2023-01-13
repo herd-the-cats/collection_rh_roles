@@ -1,4 +1,4 @@
-{% for contact in nagios_contacts_list %}
+  {%- for contact in nagios_contacts_list -%}
 define contact {
 
 contact_name    {{ contact.contact_name }}
@@ -11,17 +11,17 @@ host_notification_options    {{ contact.host_notification_options | default('d,u
 service_notification_options    {{ contact.service_notification_options | default('w,u,c,r,f') }}
 service_notification_commands    {{ contact.service_notification_commands }}
 host_notification_commands:    {{ contact.host_notification_commands }}
-{% if contact.email is defined %}
+  {%- if contact.email is defined -%}
 email    {{ contact.email }}
-{% endif %}
-{% if contact.pager is defined %}
+  {%- endif -%}
+  {%- if contact.pager is defined -%}
 pager    {{ contact.pager }}
-{% endif %}
-  {%- for k, v in contact %}
-    {%- if k is match("address[1-6]") -%}
+  {%- endif -%}
+    {%- for k, v in contact %}
+      {%- if k is match("address[1-6]") -%}
 {{ k }}    {{ v }}
-    {%- endif -%}
-  {%- endfor %}
+      {%- endif -%}
+    {%- endfor -%}
 can_submit_commands    {{ contact.can_submit_commands | default('1') }}
 }
-{% endfor %}
+  {%- endfor -%}

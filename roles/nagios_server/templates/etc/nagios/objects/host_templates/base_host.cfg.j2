@@ -1,27 +1,56 @@
 define host {
 
 check_command    {{ item.check_command | default('check_ping') }}
+initial_state    {{ item.initial_state | default('o') }}
 max_check_attempts    {{ item.max_check_attempts | default('3') }}
 check_interval    {{ item.check_interval | default('5') }} # default 5 minutes
 retry_interval    {{ item.retry_interval | default('2') }} # default 2 minutes
+active_checks_enabled    {{ item.active_checks_enabled | default('1') }}
+passive_checks_enabled    {{ item.passive_checks_enabled | default('1') }}
 check_period    {{ item.check_period | default('24x7') }}
-{% if item.event_handler is defined -%}
+obsess_over_hosts    {{ item.obsess_over_hosts | default('0') }}
+check_freshness    {{ item.check_freshness | default('0') }}
+freshness_threshold    {{ item.freshness_threshold | default('0') }}
+  {%- if item.event_handler is defined -%}
 event_handler   {{ item.event_handler }}
 event_handler_enabled    1
-{% endif -%}
+  {%- endif -%}
 low_flap_threshold    {{ item.low_flap_threshold | default('20') }}
 high_flap_threshold    {{ item.high_flap_threshold | default('50') }}
 flap_detection_enabled    {{ item.flap_detection_enabled | default('1') }}
-process_perf_data    {{ item.process_perf_data | default('1') }}
+flap_detection_options    {{ item.flap_detection_options | default('o,d,u') }}
+process_perf_data    {{ item.process_perf_data | default('0') }}
+retain_status_information    {{ item.retain_status_information | default('1') }}
+retain_nonstatus_information    {{ item.retain_nonstatus_information | default('1') }}
+  {%- if item.contacts is defined -%}
+contacts    {{ item.contacts }}
+  {%- endif -%}
+  {%- if item.contact_groups is defined -%}
+# These aren't created in this Ansible role but you can still specify them here
+contact_groups    {{ item.contact_groups }}
+  {%- endif -%}
 notification_interval    {{ item.notification_interval | default('10') }}
 first_notification_delay    {{ item.first_notification_delay | default('0') }}
 notification_period    {{ item.notification_period | default('24x7') }}
 notification_options    {{ item.notification_options | default('d,u,r,f,s') }}
 notifications_enabled    {{ item.notifications_enabled | default('1') }}
-{% if item.icon_image is defined -%}
+  {%- if item.stalking_options is defined -%}
+stalking_options    {{ item.stalking_options }}
+  {%- endif -%}
+  {%- if item.notes is defined -%}
+notes    {{ item.notes }}
+  {%- endif -%}
+  {%- if item.notes_url is defined -%}
+notes_url    {{ item.notes_url }}
+  {%- endif -%}
+  {%- if item.action_url is defined -%}
+action_url    {{ item.action_url }}
+  {%- endif -%}
+  {%- if item.icon_image is defined -%}
 icon_image    {{ item.icon_image }}
-{% endif -%}
+  {%- endif -%}
+# Not implemented in this role: vrml_image, statusmap_image, 2d_coords, 3d_coords
 
-name    {{ item.name }}_base_host
+name    {{ item.name }}_host_template
 register    0
 }
