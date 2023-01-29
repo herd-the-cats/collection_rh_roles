@@ -32,6 +32,9 @@ nagios_system_user: "nagios"
 
 nagios_vhost_fqdn: "nagios.example.com"
 
+# Set this to false if this will be a shared webserver and redirecting by default to Nagios is not desired
+nagios_vhost_default_redirect: true
+
 # NOTE this role requires an accessory role to install the cert and key files
 nagios_vhost_cert: "/etc/pki/tls/certs/example.crt"
 nagios_vhost_cert_chain: "/etc/pki/tls/certs/example-intermediate.crt"
@@ -57,6 +60,13 @@ nagios_objects_autogen_exclude: []
 #### Full object description variables are here for manually configuring monitoring
 # NOTE for commented examples, anything appended with "[*]" is a required attribute to define in a variable for the templates to work.
 # See template files for the default values of any optional attributes.
+
+nagios_default_cfg_samples:
+  - "commands.cfg"
+  - "printer.cfg"
+  - "switch.cfg"
+  - "windows.cfg"
+  - "templates.cfg"
 
 # NOTE Creating a host object manually in this following list will override any auto-generated config from other Ansible "nagios_hostcfg_*" variables.
 nagios_hostcfgs_list: []

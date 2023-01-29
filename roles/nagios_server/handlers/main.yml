@@ -1,2 +1,15 @@
 ---
 # handlers file for nagios_server
+
+- name: "Restart nagios server"
+  ansible.builtin.service:
+    name: "nagios"
+    state: "restarted"
+  listen: "restart nagios"
+  when: r_nagios_cfg_validate.rc == 0
+
+- name: "Print nagios config error"
+  ansible.builtin.debug:
+    msg: "Error with nagios config. Service will not be restarted. Error message:\n {{ r_nagios_cfg_validate.stdout }}"
+  listen: "restart nagios"
+  when: r_nagios_cfg_validate.rc != 0

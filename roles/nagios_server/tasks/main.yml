@@ -45,6 +45,7 @@
     owner: "root"
     group: "root"
   become: true
+  notify: "restart httpd"
 
 - name: "Create default virtualhost to redirect to HTTPS Nagios"
   ansible.builtin.template:
@@ -54,15 +55,8 @@
     owner: "root"
     group: "root"
   become: true
-
-- name: "Create cgi.cfg template"
-  ansible.builtin.template:
-    src: "etc/nagios/cgi.cfg.j2"
-    dest: "{{ nagios_config_path }}/cgi.cfg"
-    mode: 0644
-    owner: "root"
-    group: "root"
-  become: true
+  when: nagios_vhost_default_redirect | bool
+  notify: "restart httpd"
 
 - name: "Include tasks to build combined list of Ansible auto-gen and manually specified (non-Ansible) objects to be monitored."
   ansible.builtin.include_tasks: "build_object_list.yml"
@@ -72,30 +66,6 @@
   ansible.builtin.set_fact:
     nagios_hostcfgs_paths: "{{ nagios_hostcfgs_paths | default([]) + [ '/' ~ item.type ~ '/' ~ item.team ~ '/' ~ item.location ] }}"
   loop: "{{ nagios_hostcfgs_list }}"
-
-- name: "Create nagios.cfg template"
-  ansible.builtin.template:
-    src: "etc/nagios/nagios.cfg.j2"
-    dest: "{{ nagios_config_path }}/nagios.cfg"
-    mode: 0644
-    owner: "root"
-    group: "root"
-  become: true
-
-- name: "Archive unused default config files outside of the objects directory"
-  ansible.builtin.command: "mv -v {{ nagios_config_path }}/objects/{{ item }} {{ nagios_config_path }}/{{ item }}.sample"
-  args:
-    removes: "{{ nagios_config_path }}/objects/{{ item }}"
-    creates: "{{ nagios_config_path }}/{{ item }}.sample"
-  loop:
-  - "commands.cfg"
-  - "printer.cfg"
-  - "switch.cfg"
-  - "windows.cfg"
-  - "templates.cfg"
-  become: true
-
-#TODO timeperiod template
 
 - name: "Create all unique object directory paths"
   ansible.builtin.file:
@@ -108,16 +78,6 @@
   loop: "{{ nagios_hostcfgs_paths | unique }}"
   become: true
 
-# Note: the objects and private dirs have permissions root:nagios:0640
-- name: "Create resource.cfg template (user macros)"
-  ansible.builtin.template:
-    src: "etc/nagios/private/resource.cfg.j2"
-    dest: "{{ nagios_config_path }}/private/resource.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-
 - name: "Create commands config directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/commands"
@@ -127,34 +87,6 @@
     group: "{{ nagios_system_user }}"
     mode: 0750
   become: true
-
-- name: "Create main commands template"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/commands/commands.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/commands/commands.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-
-- name: "Create notify commands template"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/commands/notify_commands.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/commands/notify_commands.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-
-- name: "Create event commands template"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/commands/event_commands.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/commands/event_commands.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-#TODO - name: "Create localhost template for Nagios to check its host system"
 
 - name: "Create host templates directory"
   ansible.builtin.file:
@@ -166,16 +98,6 @@
     mode: 0750
   become: true
 
-- name: "Create base host templates"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/host_templates/base_host.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/host_templates/{{ item.name }}_host_template.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-  loop: "{{ nagios_base_host_templates }}"
-
 - name: "Create service templates directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/svc_templates"
@@ -186,16 +108,6 @@
     mode: 0750
   become: true
 
-- name: "Create base service templates"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/svc_templates/base_svc.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/svc_templates/{{ item.name }}_svc_template.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-  loop: "{{ nagios_base_svc_templates }}"
-
 - name: "Create hostgroups directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/hostgroups"
@@ -204,25 +116,6 @@
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
-  become: true
-
-- name: "Create default hostgroup views"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/hostgroups/default_hostgroups.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/hostgroups/default_hostgroups.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  become: true
-
-- name: "Create hostgroup object templates with services"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/hostgroups/hostgroups.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/hostgroups/{{ item.hostgroup_name }}_hostgroup.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  loop: "{{ nagios_hostgroups_list }}"
   become: true
 
 - name: "Create directory for custom plugins/scripts"
@@ -235,6 +128,175 @@
     mode: 0755
   become: true
 
+- name: "Archive unused default config files outside of the objects directory"
+  ansible.builtin.command: "mv -v {{ nagios_config_path }}/objects/{{ item }} {{ nagios_config_path }}/{{ item }}.sample"
+  args:
+    removes: "{{ nagios_config_path }}/objects/{{ item }}"
+    creates: "{{ nagios_config_path }}/{{ item }}.sample"
+  loop: "{{ nagios_default_cfg_samples }}"
+  become: true
+
+- name: "Block of nagios config copy and templating tasks"
+  block:
+    - name: "Create cgi.cfg template"
+      ansible.builtin.template:
+        src: "etc/nagios/cgi.cfg.j2"
+        dest: "{{ nagios_config_path }}/cgi.cfg"
+        mode: 0644
+        owner: "root"
+        group: "root"
+        backup: true
+      become: true
+      register: r_cgi_template
+      notify: "restart nagios"
+
+    - name: "Create nagios.cfg template"
+      ansible.builtin.template:
+        src: "etc/nagios/nagios.cfg.j2"
+        dest: "{{ nagios_config_path }}/nagios.cfg"
+        mode: 0644
+        owner: "root"
+        group: "root"
+        backup: true
+      become: true
+      register: r_nagios_template
+      notify: "restart nagios"
+
+#TODO timeperiod template
+
+
+# Note: the objects and private dirs have permissions root:nagios:0640
+    - name: "Create resource.cfg template (user macros)"
+      ansible.builtin.template:
+        src: "etc/nagios/private/resource.cfg.j2"
+        dest: "{{ nagios_config_path }}/private/resource.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_resource_template
+      notify: "restart nagios"
+
+    - name: "Create main commands template"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/commands/commands.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/commands/commands.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_commands_template
+      notify: "restart nagios"
+
+    - name: "Create notify commands template"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/commands/notify_commands.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/commands/notify_commands.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_notify_commands_template
+      notify: "restart nagios"
+
+    - name: "Create event commands template"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/commands/event_commands.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/commands/event_commands.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_event_commands_template
+      notify: "restart nagios"
+
+#TODO - name: "Create localhost template for Nagios to check its host system"
+
+    - name: "Create base host templates"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/host_templates/base_host.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/host_templates/{{ item.name }}_host_template.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      loop: "{{ nagios_base_host_templates }}"
+      register: r_loop_host_templates
+      notify: "restart nagios"
+
+    - name: "Create base service templates"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/svc_templates/base_svc.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/svc_templates/{{ item.name }}_svc_template.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      loop: "{{ nagios_base_svc_templates }}"
+      register: r_loop_svc_templates
+      notify: "restart nagios"
+
+    - name: "Create default hostgroup views"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/hostgroups/default_hostgroups.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/hostgroups/default_hostgroups.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_default_hostgroups_template
+      notify: "restart nagios"
+
+    - name: "Create hostgroup object templates with services"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/hostgroups/hostgroups.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/hostgroups/{{ item.hostgroup_name }}_hostgroup.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      loop: "{{ nagios_hostgroups_list }}"
+      become: true
+      register: r_loop_hostgroup_templates
+      notify: "restart nagios"
+
+    - name: "Create contacts template"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/contacts.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/contacts.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      become: true
+      register: r_contacts_template
+      notify: "restart nagios"
+
+    - name: "Create host config templates for each host and its services"
+      ansible.builtin.template:
+        src: "etc/nagios/objects/hosts/host.cfg.j2"
+        dest: "{{ nagios_config_path }}/objects/hosts/{{ item.type }}/{{ item.team }}/{{ item.location }}/{{ item.host_name }}.cfg"
+        owner: "root"
+        group: "root"
+        mode: 0644
+        backup: true
+      loop: "{{ nagios_hostcfgs_list }}"
+      become: true
+      register: r_loop_hostcfg_templates
+      notify: "restart nagios"
+
+  rescue:
+    - name: "Include config undo tasks due to error during templating tasks"
+      include_tasks: "undo_template_changes.yml"
+
+# This might be better as a git repo download
 - name: "Copy custom plugins/scripts (USER2 macro by default)"
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -242,27 +304,25 @@
     owner: "root"
     group: "root"
     mode: 0755
-  loop: "{{ lookup('fileglob', 'plugins/*', wantlist=True) }}"
+  loop: "{{ lookup('fileglob', 'custom_nagios_plugins/*', wantlist=True) }}"
   become: true
 
-- name: "Create contacts template"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/contacts.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/contacts.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
+- name: "Validate templated nagios configuration"
+  shell: "/usr/bin/env nagios -v -v {{ nagios_config_path }}/nagios.cfg"
+  changed_when: false
+  failed_when: false
+  register: r_nagios_cfg_validate
   become: true
 
-- name: "Create host config templates for each host and its services"
-  ansible.builtin.template:
-    src: "etc/nagios/objects/hosts/host.cfg.j2"
-    dest: "{{ nagios_config_path }}/objects/hosts/{{ item.type }}/{{ item.team }}/{{ item.location }}/{{ item.host_name }}.cfg"
-    owner: "root"
-    group: "root"
-    mode: 0644
-  loop: "{{ nagios_hostcfgs_list }}"
-  become: true
+- name: "Enable nagios server service"
+  service:
+    name: "nagios"
+    enabled: true
+  when: r_nagios_cfg_validate.rc == 0
+
+- name: "Revert template changes to backups due to validation error"
+  include_tasks: "undo_template_changes.yml"
+  when: r_nagios_cfg_validate.rc != 0
 
 #TODO this may need an optional cleaning task that deletes any hosts that don't match the hostcfgs list, but
 # that's difficult to make idempotent.
