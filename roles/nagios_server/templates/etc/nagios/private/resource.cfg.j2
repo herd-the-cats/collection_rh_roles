@@ -31,6 +31,6 @@
 #$USER3$=someuser
 #$USER4$=somepassword
 
-{% for macro, path in nagios_user_macros %}
-${{ macro }}$={{ path }}
+{% for macro in nagios_user_macros | dict2items %}
+${{ macro.key }}$={{ macro.value }}
 {% endfor %}

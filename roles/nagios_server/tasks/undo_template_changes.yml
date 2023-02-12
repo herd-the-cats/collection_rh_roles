@@ -1,0 +1,68 @@
+- name: "Set fact with defined registered variables due to limitation in conditional vars lookups"
+  set_fact:
+    nagios_undo_templates: "{{ nagios_undo_templates | default([]) + [ item ] }}"
+  when: lookup('vars', item, default='undefined') != 'undefined'
+  loop:
+  - "r_cgi_template"
+  - "r_nagios_template"
+  - "r_resource_template"
+  - "r_commands_template"
+  - "r_notify_commands_template"
+  - "r_event_commands_template"
+  - "r_default_hostgroups_template"
+  - "r_contacts_template"
+
+- name: "Loop through single template tasks to restore file backup if task is changed"
+  copy:
+    src: "{{ lookup('vars', item).backup_file }}"
+    remote_src: true
+    dest: "{{ lookup('vars', item).dest }}"
+    owner: "{{ lookup('vars', item).owner }}"
+    group: "{{ lookup('vars', item).group }}"
+    mode: "{{ lookup('vars', item).mode }}"
+  when: lookup('vars', item).changed | bool and lookup('vars', item).backup_file is defined
+  loop: "{{ nagios_undo_templates }}"
+
+- name: "Revert any changed host templates from backup"
+  copy:
+    src: "{{ item.backup_file }}"
+    remote_src: true
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  when: r_loop_host_templates is defined and item.changed
+  loop: "{{ r_loop_host_templates.results }}"
+
+- name: "Revert any changed service templates from backup"
+  copy:
+    src: "{{ item.backup_file }}"
+    remote_src: true
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  when: r_loop_svc_templates is defined and item.changed
+  loop: "{{ r_loop_svc_templates.results }}"
+
+- name: "Revert any changed hostgroup templates from backup"
+  copy:
+    src: "{{ item.backup_file }}"
+    remote_src: true
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  when: r_loop_hostgroup_templates is defined and item.changed
+  loop: "{{ r_loop_hostgroup_templates.results }}"
+
+- name: "Revert any changed hostcfg templates from backup"
+  copy:
+    src: "{{ item.backup_file }}"
+    remote_src: true
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  when: r_loop_hostcfg_templates is defined and item.changed
+  loop: "{{ r_loop_hostcfg_templates.results }}"

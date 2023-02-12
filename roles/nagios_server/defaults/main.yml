@@ -10,8 +10,14 @@ nagios_packages:
 - "perl-Nagios-Plugin"
 - "pnp4nagios"
 - "httpd"
+- "mod_ssl"
 
 nagios_config_path: "/etc/nagios"
+
+# This option is mostly for development. If set to false, the role will not attempt to validate
+# config and roll back changes if nagios' validation fails. If you set this false in production
+# you're gonna have a bad time.
+nagios_config_validate: true
 
 # This will generate accounts using htpasswd and bcrypt.
 nagios_admins: []
@@ -37,7 +43,7 @@ nagios_vhost_default_redirect: true
 
 # NOTE this role requires an accessory role to install the cert and key files
 nagios_vhost_cert: "/etc/pki/tls/certs/example.crt"
-nagios_vhost_cert_chain: "/etc/pki/tls/certs/example-intermediate.crt"
+#nagios_vhost_cert_chain: "/etc/pki/tls/certs/example-intermediate.crt"
 nagios_vhost_cert_key: "/etc/pki/tls/private/example.key"
 
 #################### NAGIOS OBJECT AUTO GENERATION ####################
@@ -67,6 +73,7 @@ nagios_default_cfg_samples:
   - "switch.cfg"
   - "windows.cfg"
   - "templates.cfg"
+  - "localhost.cfg"
 
 # NOTE Creating a host object manually in this following list will override any auto-generated config from other Ansible "nagios_hostcfg_*" variables.
 nagios_hostcfgs_list: []
@@ -154,7 +161,7 @@ nagios_base_host_templates: []
 #  active_checks_enabled: '1'
 #  passive_checks_enabled: '1'
 #  check_period: '24x7'
-#  obsess_over_hosts: '0'
+#  obsess_over_host: '0'
 #  check_freshness: '0'
 #  freshness_threshold: '0'
 #  event_handler: "/usr/lib64/nagios/custom_plugins/event_handler.sh"

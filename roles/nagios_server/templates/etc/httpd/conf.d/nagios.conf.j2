@@ -13,7 +13,9 @@ SSLProtocol +TLSv1.2 -SSLv3 -TLSv1 -TLSv1.1
 SSLCipherSuite HIGH
 
 SSLCertificateFile {{ nagios_vhost_cert }}
+{% if nagios_vhost_cert_chain is defined and nagios_vhost_cert_chain %}
 SSLCertificateChainFile {{ nagios_vhost_cert_chain }}
+{% endif %}
 SSLCertificateKeyFile {{ nagios_vhost_cert_key }}
 
 

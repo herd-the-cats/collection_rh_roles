@@ -5,13 +5,13 @@
 - name: "Include distro specific variables"
   ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
-    files:
-    - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
-    - "{{ ansible_distribution }}.yml"
-    - "{{ ansible_os_family }}.yml"
-    skip: true
-  tags:
-  - always
+    - files:
+        - "{{ ansible_distribution }}_{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}.yml"
+      skip: true
+      paths:
+      - 'vars'
 
 - name: "Install required Nagios server and plugin packages"
   ansible.builtin.package:
@@ -21,13 +21,20 @@
 
 # More info on apache and bcrypt https://www.endpointdev.com/blog/2016/02/bonked-by-basicauth-because-bcrypt/
 #TODO make htpasswd shell command idempotent since the module doesn't support bcrypt
+- name: "Remove default nagios passwd file"
+  ansible.builtin.file:
+    path: "{{ nagios_config_path }}/passwd"
+    state: "absent"
+  when: "nagios_config_path ~ '/passwd' != nagios_htpasswd_path"
+  become: true
+
 - name: "Create empty file for htpasswd"
   ansible.builtin.file:
     path: "{{ nagios_htpasswd_path }}"
     state: "touch"
     access_time: "preserve"
     mode: 0640
-    owner: "{{ nagios_apache_user }}"
+    owner: "root"
     group: "{{ nagios_apache_user }}"
   become: true
 
@@ -41,6 +48,7 @@
   ansible.builtin.template:
     src: "etc/httpd/conf.d/nagios.conf.j2"
     dest: "/etc/httpd/conf.d/nagios.conf"
+    lstrip_blocks: true
     mode: 0644
     owner: "root"
     group: "root"
@@ -51,6 +59,7 @@
   ansible.builtin.template:
     src: "etc/httpd/conf.d/00default_vhost.conf.j2"
     dest: "/etc/httpd/conf.d/00default_vhost.conf"
+    lstrip_blocks: true
     mode: 0644
     owner: "root"
     group: "root"
@@ -60,7 +69,6 @@
 
 - name: "Include tasks to build combined list of Ansible auto-gen and manually specified (non-Ansible) objects to be monitored."
   ansible.builtin.include_tasks: "build_object_list.yml"
-  throttle: 1
 
 - name: "Set path variable from each object's type, team, and location"
   ansible.builtin.set_fact:
@@ -70,8 +78,7 @@
 - name: "Create all unique object directory paths"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/hosts{{ item }}"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
@@ -81,8 +88,7 @@
 - name: "Create commands config directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/commands"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
@@ -91,8 +97,7 @@
 - name: "Create host templates directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/host_templates"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
@@ -101,8 +106,7 @@
 - name: "Create service templates directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/svc_templates"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
@@ -111,8 +115,7 @@
 - name: "Create hostgroups directory"
   ansible.builtin.file:
     path: "{{ nagios_config_path }}/objects/hostgroups"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "{{ nagios_system_user }}"
     mode: 0750
@@ -121,8 +124,7 @@
 - name: "Create directory for custom plugins/scripts"
   ansible.builtin.file:
     path: "{{ nagios_custom_plugins_path }}"
-    type: "directory"
-    state: "present"
+    state: "directory"
     owner: "root"
     group: "root"
     mode: 0755
@@ -142,6 +144,7 @@
       ansible.builtin.template:
         src: "etc/nagios/cgi.cfg.j2"
         dest: "{{ nagios_config_path }}/cgi.cfg"
+        lstrip_blocks: true
         mode: 0644
         owner: "root"
         group: "root"
@@ -154,6 +157,7 @@
       ansible.builtin.template:
         src: "etc/nagios/nagios.cfg.j2"
         dest: "{{ nagios_config_path }}/nagios.cfg"
+        lstrip_blocks: true
         mode: 0644
         owner: "root"
         group: "root"
@@ -170,6 +174,7 @@
       ansible.builtin.template:
         src: "etc/nagios/private/resource.cfg.j2"
         dest: "{{ nagios_config_path }}/private/resource.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -182,6 +187,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/commands/commands.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/commands/commands.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -194,6 +200,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/commands/notify_commands.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/commands/notify_commands.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -206,6 +213,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/commands/event_commands.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/commands/event_commands.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -220,6 +228,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/host_templates/base_host.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/host_templates/{{ item.name }}_host_template.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -233,6 +242,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/svc_templates/base_svc.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/svc_templates/{{ item.name }}_svc_template.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -246,6 +256,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/hostgroups/default_hostgroups.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/hostgroups/default_hostgroups.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -258,6 +269,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/hostgroups/hostgroups.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/hostgroups/{{ item.hostgroup_name }}_hostgroup.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -271,6 +283,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/contacts.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/contacts.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -283,6 +296,7 @@
       ansible.builtin.template:
         src: "etc/nagios/objects/hosts/host.cfg.j2"
         dest: "{{ nagios_config_path }}/objects/hosts/{{ item.type }}/{{ item.team }}/{{ item.location }}/{{ item.host_name }}.cfg"
+        lstrip_blocks: true
         owner: "root"
         group: "root"
         mode: 0644
@@ -295,6 +309,7 @@
   rescue:
     - name: "Include config undo tasks due to error during templating tasks"
       include_tasks: "undo_template_changes.yml"
+      when: nagios_config_validate | bool
 
 # This might be better as a git repo download
 - name: "Copy custom plugins/scripts (USER2 macro by default)"
@@ -309,6 +324,7 @@
 
 - name: "Validate templated nagios configuration"
   shell: "/usr/bin/env nagios -v -v {{ nagios_config_path }}/nagios.cfg"
+  when: nagios_config_validate | bool
   changed_when: false
   failed_when: false
   register: r_nagios_cfg_validate
@@ -318,16 +334,12 @@
   service:
     name: "nagios"
     enabled: true
-  when: r_nagios_cfg_validate.rc == 0
+  when: not nagios_config_validate | bool or r_nagios_cfg_validate.rc == 0
 
 - name: "Revert template changes to backups due to validation error"
   include_tasks: "undo_template_changes.yml"
-  when: r_nagios_cfg_validate.rc != 0
+  when: nagios_config_validate | bool and r_nagios_cfg_validate.rc != 0
 
 #TODO this may need an optional cleaning task that deletes any hosts that don't match the hostcfgs list, but
 # that's difficult to make idempotent.
 #- name: "Archive and remove any retired host objects"
-
-#TODO check rpm installed systemd unit file for any necessary changes
-
-#TODO make Nagios reload handler, add final config validation conditional

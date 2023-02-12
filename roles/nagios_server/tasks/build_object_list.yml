@@ -14,12 +14,12 @@
 - name: "Collect Nagios information for each play host into a dictionary variable"
   ansible.builtin.set_fact:
     nagios_hostcfg_settings:
-      location: "{{ nagios_hostcfg_location | default('unknown')}}"
-      type: "{{ nagios_hostcfg_type | default('generic')}}"
-      team: "{{ nagios_hostcfg_team | default('orphaned')}}"
+      location: "{{ nagios_hostcfg_location | default('unknown') }}"
+      type: "{{ nagios_hostcfg_type | default('generic') }}"
+      team: "{{ nagios_hostcfg_team | default('orphaned') }}"
       host_name: "{{ item }}"
       address: "{{ hostvars[item].ansible_default_ipv4.address }}"
-      use: "{{ nagios_hostcfg_template | default('generic')}}"
+      use: "{{ nagios_hostcfg_template | default('generic') }}"
       alias: "{{ nagios_hostcfg_alias | default(omit) }}"
       check_command: "{{ nagios_hostcfg_check_command | default(omit) }}"
       initial_state: "{{ nagios_hostcfg_initial_state | default(omit) }}"
@@ -43,15 +43,15 @@
       contacts: "{{ nagios_hostcfg_contacts | default(omit)}}"
       notification_interval: "{{ nagios_hostcfg_notification_interval | default(omit) }}"
       first_notification_delay: "{{ nagios_hostcfg_first_notification_delay | default(omit)}}"
-      notification_period: "{{ nagios_hostcfg_notification_period | default(omit)}}"
-      notification_options: "{{ nagios_hostcfg_notification_options | default(omit)}}"
-      notifications_enabled: "{{ nagios_hostcfg_notifications_enabled | default(omit)}}"
-      stalking_options: "{{ nagios_hostcfg_stalking_options | default(omit)}}"
+      notification_period: "{{ nagios_hostcfg_notification_period | default(omit) }}"
+      notification_options: "{{ nagios_hostcfg_notification_options | default(omit) }}"
+      notifications_enabled: "{{ nagios_hostcfg_notifications_enabled | default(omit) }}"
+      stalking_options: "{{ nagios_hostcfg_stalking_options | default(omit) }}"
       notes: "{{ nagios_hostcfg_notes | default(omit) }}"
       notes_url: "{{ nagios_hostcfg_notes_url | default(omit) }}"
       action_url: "{{ nagios_hostcfg_action_url | default(omit) }}"
       icon_image: "{{ nagios_hostcfg_icon_image | default(omit) }}"
-      services: "{{ nagios_hostcfg_services | default(omit)}}"
+      services: "{{ nagios_hostcfg_services | default(omit) }}"
   when:
   - item not in nagios_objects_autogen_exclude
   - nagios_objects_auto_generate | bool
@@ -66,12 +66,12 @@
   when:
   - item not in nagios_objects_autogen_exclude
   - nagios_objects_auto_generate | bool
-  delegate_to: "localhost"
 
 - name: "Loop through play hosts to create a list of hosts in the desired format"
   ansible.builtin.set_fact:
     nagios_hostcfgs_list: '{{ nagios_hostcfgs_list | default([]) + [ item ] }}'
   loop: "{{ nagios_hostcfgs_auto_list }}"
   when:
+  - nagios_hostcfgs_auto_list is defined
   - item.host_name not in nagios_hostcfgs_list | map(attribute="host_name") | list
   - nagios_objects_auto_generate | bool

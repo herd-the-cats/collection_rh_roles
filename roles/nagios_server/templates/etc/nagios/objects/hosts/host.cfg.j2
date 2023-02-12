@@ -3,211 +3,211 @@ host_name    {{ item.host_name }}
 address    {{ item.address }}
 use    {{ item.use }}
 alias    {{ item.alias | default(item.host_name) }}
-  {%- if item.check_command is defined -%}
+  {% if item.check_command is defined %}
 check_command    {{ item.check_command }}
-  {%- endif -%}
-  {%- if item.initial_state is defined -%}
+  {% endif %}
+  {% if item.initial_state is defined %}
 initial_state    {{ item.initial_state }}
-  {%- endif -%}
-  {%- if item.max_check_attempts is defined -%}
+  {% endif %}
+  {% if item.max_check_attempts is defined %}
 max_check_attempts    {{ item.max_check_attempts }}
-  {%- endif -%}
-  {%- if item.check_interval is defined -%}
+  {% endif %}
+  {% if item.check_interval is defined %}
 check_interval    {{ item.check_interval }}
-  {%- endif -%}
-  {%- if item.retry_interval is defined -%}
+  {% endif %}
+  {% if item.retry_interval is defined %}
 retry_interval    {{ item.retry_interval }}
-  {%- endif -%}
-  {%- if item.active_checks_enabled is defined -%}
+  {% endif %}
+  {% if item.active_checks_enabled is defined %}
 active_checks_enabled    {{ item.active_checks_enabled }}
-  {%- endif -%}
-  {%- if item.passive_checks_enabled is defined -%}
+  {% endif %}
+  {% if item.passive_checks_enabled is defined %}
 passive_checks_enabled    {{ item.passive_checks_enabled }}
-  {%- endif -%}
-  {%- if item.check_period is defined -%}
+  {% endif %}
+  {% if item.check_period is defined %}
 check_period    {{ item.check_period }}
-  {%- endif -%}
-  {%- if item.obsess_over_hosts is defined -%}
-obsess_over_hosts    {{ item.obsess_over_hosts }}
-  {%- endif -%}
-  {%- if item.check_freshness is defined -%}
+  {% endif %}
+  {% if item.obsess_over_hosts is defined %}
+obsess_over_host    {{ item.obsess_over_host }}
+  {% endif %}
+  {% if item.check_freshness is defined %}
 check_freshness    {{ item.check_freshness }}
-  {%- endif -%}
-  {%- if item.freshness_threshold is defined -%}
+  {% endif %}
+  {% if item.freshness_threshold is defined %}
 freshness_threshold    {{ item.freshness_threshold }}
-  {%- endif -%}
-  {%- if item.event_handler is defined -%}
+  {% endif %}
+  {% if item.event_handler is defined %}
 event_handler   {{ item.event_handler }}
 event_handler_enabled    1
-  {%- endif -%}
-  {%- if item.low_flap_threshold is defined -%}
+  {% endif %}
+  {% if item.low_flap_threshold is defined %}
 low_flap_threshold    {{ item.low_flap_threshold }}
-  {%- endif -%}
-  {%- if item.high_flap_threshold is defined -%}
+  {% endif %}
+  {% if item.high_flap_threshold is defined %}
 high_flap_threshold    {{ item.high_flap_threshold }}
-  {%- endif -%}
-  {%- if item.flap_detection_enabled is defined -%}
+  {% endif %}
+  {% if item.flap_detection_enabled is defined %}
 flap_detection_enabled    {{ item.flap_detection_enabled }}
-  {%- endif -%}
-  {%- if item.flap_detection_options is defined -%}
+  {% endif %}
+  {% if item.flap_detection_options is defined %}
 flap_detection_options    {{ item.flap_detection_options }}
-  {%- endif -%}
-  {%- if item.process_perf_data is defined -%}
+  {% endif %}
+  {% if item.process_perf_data is defined %}
 process_perf_data    {{ item.process_perf_data }}
-  {%- endif -%}
-  {%- if item.retain_status_information is defined -%}
+  {% endif %}
+  {% if item.retain_status_information is defined %}
 retain_status_information    {{ item.retain_status_information }}
-  {%- endif -%}
-  {%- if item.retain_nonstatus_information is defined -%}
+  {% endif %}
+  {% if item.retain_nonstatus_information is defined %}
 retain_nonstatus_information    {{ item.retain_nonstatus_information }}
-  {%- endif -%}
-  {%- if item.contacts is defined -%}
+  {% endif %}
+  {% if item.contacts is defined %}
 contacts    {{ item.contacts }}
-  {%- endif -%}
-  {%- if item.contact_groups is defined -%}
+  {% endif %}
+  {% if item.contact_groups is defined %}
 # These aren't created in this Ansible role but you can still specify them here
 contact_groups    {{ item.contact_groups }}
-  {%- endif -%}
-  {%- if item.notification_interval is defined -%}
+  {% endif %}
+  {% if item.notification_interval is defined %}
 notification_interval    {{ item.notification_interval }}
-  {%- endif -%}
-  {%- if item.first_notification_delay is defined -%}
+  {% endif %}
+  {% if item.first_notification_delay is defined %}
 first_notification_delay    {{ item.first_notification_delay }}
-  {%- endif -%}
-  {%- if item.notification_period is defined -%}
+  {% endif %}
+  {% if item.notification_period is defined %}
 notification_period    {{ item.notification_period }}
-  {%- endif -%}
-  {%- if item.notification_options is defined -%}
+  {% endif %}
+  {% if item.notification_options is defined %}
 notification_options    {{ item.notification_options }}
-  {%- endif -%}
-  {%- if item.notifications_enabled is defined -%}
+  {% endif %}
+  {% if item.notifications_enabled is defined %}
 notifications_enabled    {{ item.notifications_enabled }}
-  {%- endif -%}
-  {%- if item.stalking_options is defined -%}
+  {% endif %}
+  {% if item.stalking_options is defined %}
 stalking_options    {{ item.stalking_options }}
-  {%- endif -%}
-  {%- if item.notes is defined -%}
+  {% endif %}
+  {% if item.notes is defined %}
 notes    {{ item.notes }}
-  {%- endif -%}
-  {%- if item.notes_url is defined -%}
+  {% endif %}
+  {% if item.notes_url is defined %}
 notes_url    {{ item.notes_url }}
-  {%- endif -%}
-  {%- if item.action_url is defined -%}
+  {% endif %}
+  {% if item.action_url is defined %}
 action_url    {{ item.action_url }}
-  {%- endif -%}
-  {%- if item.icon_image is defined -%}
+  {% endif %}
+  {% if item.icon_image is defined %}
 icon_image    {{ item.icon_image }}
-  {%- endif -%}
+  {% endif %}
 }
 
-  {%- if item.services is defined -%}
-    {%- for host_svc in item.services -%}
+  {% if item.services is defined %}
+    {% for host_svc in item.services %}
 define service {
 host_name    {{ item.host_name }}
 use    {{ host_svc.use }}
-  {%- if host_svc.contacts is defined -%}
+  {% if host_svc.contacts is defined %}
 contacts    {{ host_svc.contacts }}
-  {%- elif item.contacts is defined -%}
+  {% elif item.contacts is defined %}
 contacts    {{ item.contacts }}
-  {%- endif -%}
-  {%- if host_svc.service_description is defined -%}
+  {% endif %}
+  {% if host_svc.service_description is defined %}
 service_description    {{ host_svc.service_description }}
-  {%- endif -%}
-  {%- if host_svc.is_volatile is defined -%}
+  {% endif %}
+  {% if host_svc.is_volatile is defined %}
 is_volatile    {{ host_svc.is_volatile }}
-  {%- endif -%}
-  {%- if host_svc.initial_state is defined -%}
+  {% endif %}
+  {% if host_svc.initial_state is defined %}
 initial_state    {{ host_svc.initial_state }}
-  {%- endif -%}
-  {%- if host_svc.max_check_attempts is defined -%}
+  {% endif %}
+  {% if host_svc.max_check_attempts is defined %}
 max_check_attempts    {{ host_svc.max_check_attempts }}
-  {%- endif -%}
-  {%- if host_svc.check_interval is defined -%}
+  {% endif %}
+  {% if host_svc.check_interval is defined %}
 check_interval    {{ host_svc.check_interval }}
-  {%- endif -%}
-  {%- if host_svc.retry_interval is defined -%}
+  {% endif %}
+  {% if host_svc.retry_interval is defined %}
 retry_interval    {{ host_svc.retry_interval }}
-  {%- endif -%}
-  {%- if host_svc.active_checks_enabled is defined -%}
+  {% endif %}
+  {% if host_svc.active_checks_enabled is defined %}
 active_checks_enabled    {{ host_svc.active_checks_enabled }}
-  {%- endif -%}
-  {%- if host_svc.passive_checks_enabled is defined -%}
+  {% endif %}
+  {% if host_svc.passive_checks_enabled is defined %}
 passive_checks_enabled    {{ host_svc.passive_checks_enabled }}
-  {%- endif -%}
-  {%- if host_svc.check_period is defined -%}
+  {% endif %}
+  {% if host_svc.check_period is defined %}
 check_period    {{ host_svc.check_period }}
-  {%- endif -%}
-  {%- if host_svc.obsess_over_service is defined -%}
+  {% endif %}
+  {% if host_svc.obsess_over_service is defined %}
 obsess_over_service    {{ host_svc.obsess_over_service }}
-  {%- endif -%}
-  {%- if host_svc.check_freshness is defined -%}
+  {% endif %}
+  {% if host_svc.check_freshness is defined %}
 check_freshness    {{ host_svc.check_freshness }}
-  {%- endif -%}
-  {%- if host_svc.freshness_threshold is defined -%}
+  {% endif %}
+  {% if host_svc.freshness_threshold is defined %}
 freshness_threshold    {{ host_svc.freshness_threshold }}
-  {%- endif -%}
-  {%- if host_svc.event_handler is defined -%}
+  {% endif %}
+  {% if host_svc.event_handler is defined %}
 event_handler   {{ host_svc.event_handler }}
 event_handler_enabled    1
-  {%- endif -%}
-  {%- if host_svc.low_flap_threshold is defined -%}
+  {% endif %}
+  {% if host_svc.low_flap_threshold is defined %}
 low_flap_threshold    {{ host_svc.low_flap_threshold }}
-  {%- endif -%}
-  {%- if host_svc.high_flap_threshold is defined -%}
+  {% endif %}
+  {% if host_svc.high_flap_threshold is defined %}
 high_flap_threshold    {{ host_svc.high_flap_threshold }}
-  {%- endif -%}
-  {%- if host_svc.flap_detection_enabled is defined -%}
+  {% endif %}
+  {% if host_svc.flap_detection_enabled is defined %}
 flap_detection_enabled    {{ host_svc.flap_detection_enabled }}
-  {%- endif -%}
-  {%- if host_svc.flap_detection_options is defined -%}
+  {% endif %}
+  {% if host_svc.flap_detection_options is defined %}
 flap_detection_options    {{ host_svc.flap_detection_options }}
-  {%- endif -%}
-  {%- if host_svc.process_perf_data is defined -%}
+  {% endif %}
+  {% if host_svc.process_perf_data is defined %}
 process_perf_data    {{ host_svc.process_perf_data }}
-  {%- endif -%}
-  {%- if host_svc.retain_status_information is defined -%}
+  {% endif %}
+  {% if host_svc.retain_status_information is defined %}
 retain_status_information    {{ host_svc.retain_status_information }}
-  {%- endif -%}
-  {%- if host_svc.retain_nonstatus_information is defined -%}
+  {% endif %}
+  {% if host_svc.retain_nonstatus_information is defined %}
 retain_nonstatus_information    {{ host_svc.retain_nonstatus_information }}
-  {%- endif -%}
-  {%- if host_svc.notification_interval is defined -%}
+  {% endif %}
+  {% if host_svc.notification_interval is defined %}
 notification_interval    {{ host_svc.notification_interval }}
-  {%- endif -%}
-  {%- if host_svc.first_notification_delay is defined -%}
+  {% endif %}
+  {% if host_svc.first_notification_delay is defined %}
 first_notification_delay    {{ host_svc.first_notification_delay }}
-  {%- endif -%}
-  {%- if host_svc.notification_period is defined -%}
+  {% endif %}
+  {% if host_svc.notification_period is defined %}
 notification_period    {{ host_svc.notification_period }}
-  {%- endif -%}
-  {%- if host_svc.notification_options is defined -%}
+  {% endif %}
+  {% if host_svc.notification_options is defined %}
 notification_options    {{ host_svc.notification_options }}
-  {%- endif -%}
-  {%- if host_svc.notifications_enabled is defined -%}
+  {% endif %}
+  {% if host_svc.notifications_enabled is defined %}
 notifications_enabled    {{ host_svc.notifications_enabled }}
-  {%- endif -%}
-  {%- if host_svc.contact_groups is defined -%}
+  {% endif %}
+  {% if host_svc.contact_groups is defined %}
 # These aren't created in this Ansible role but you can still specify them here
 contact_groups    {{ host_svc.contact_groups }}
-  {%- endif -%}
-  {%- if host_svc.stalking_options is defined -%}
+  {% endif %}
+  {% if host_svc.stalking_options is defined %}
 stalking_options {{ host_svc.stalking_options }}
-  {%- endif -%}
-  {%- if host_svc.notes is defined -%}
+  {% endif %}
+  {% if host_svc.notes is defined %}
 notes    {{ host_svc.notes }}
-  {%- endif -%}
-  {%- if host_svc.notes_url is defined -%}
+  {% endif %}
+  {% if host_svc.notes_url is defined %}
 notes_url    {{ host_svc.notes_url }}
-  {%- endif -%}
-  {%- if host_svc.action_url is defined -%}
+  {% endif %}
+  {% if host_svc.action_url is defined %}
 action_url    {{ host_svc.action_url }}
-  {%- endif -%}
-  {%- if host_svc.icon_image is defined -%}
+  {% endif %}
+  {% if host_svc.icon_image is defined %}
 icon_image    {{ host_svc.icon_image }}
-  {%- endif -%}
-  {%- if host_svc.icon_image_alt is defined -%}
+  {% endif %}
+  {% if host_svc.icon_image_alt is defined %}
 icon_image_alt    {{ host_svc.icon_image_alt }}
-  {%- endif -%}
+  {% endif %}
 }
-    {%- endfor -%}
-  {%- endif -%}
+    {% endfor %}
+  {% endif %}

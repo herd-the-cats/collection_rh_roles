@@ -16,10 +16,10 @@ check_period    {{ item.check_period | default('24x7') }}
 obsess_over_service    {{ item.obsess_over_service | default('0') }}
 check_freshness    {{ item.check_freshness | default('0') }}
 freshness_threshold    {{ item.freshness_threshold | default('0') }}
-  {%- if item.event_handler is defined -%}
+  {% if item.event_handler is defined %}
 event_handler   {{ item.event_handler }}
 event_handler_enabled    1
-  {%- endif -%}
+  {% endif %}
 low_flap_threshold    {{ item.low_flap_threshold | default('20') }}
 high_flap_threshold    {{ item.high_flap_threshold | default('50') }}
 flap_detection_enabled    {{ item.flap_detection_enabled | default('1') }}
@@ -30,33 +30,33 @@ retain_nonstatus_information    {{ item.retain_nonstatus_information | default('
 notification_interval    {{ item.notification_interval | default('10') }}
 first_notification_delay    {{ item.first_notification_delay | default('0') }}
 notification_period    {{ item.notification_period | default('24x7') }}
-notification_options    {{ item.notification_options | default('d,u,r,f,s') }}
+notification_options    {{ item.notification_options | default('w,u,c,r,f,s') }}
 notifications_enabled    {{ item.notifications_enabled | default('1') }}
-  {%- if item.contacts is defined -%}
+  {% if item.contacts is defined %}
 contacts    {{ item.contacts }}
-  {%- endif -%}
-  {%- if item.contact_groups is defined -%}
+  {% endif %}
+  {% if item.contact_groups is defined %}
 # These aren't created in this Ansible role but you can still specify them here
 contact_groups    {{ item.contact_groups }}
-  {%- endif -%}
-  {%- if item.stalking_options is defined -%}
+  {% endif %}
+  {% if item.stalking_options is defined %}
 stalking_options {{ item.stalking_options }}
-  {%- endif -%}
-  {%- if item.notes is defined -%}
+  {% endif %}
+  {% if item.notes is defined %}
 notes    {{ item.notes }}
-  {%- endif -%}
-  {%- if item.notes_url is defined -%}
+  {% endif %}
+  {% if item.notes_url is defined %}
 notes_url    {{ item.notes_url }}
-  {%- endif -%}
-  {%- if item.action_url is defined -%}
+  {% endif %}
+  {% if item.action_url is defined %}
 action_url    {{ item.action_url }}
-  {%- endif -%}
-  {%- if item.icon_image is defined -%}
+  {% endif %}
+  {% if item.icon_image is defined %}
 icon_image    {{ item.icon_image }}
-  {%- endif -%}
-  {%- if item.icon_image_alt is defined -%}
+  {% endif %}
+  {% if item.icon_image_alt is defined %}
 icon_image_alt    {{ item.icon_image_alt }}
-  {%- endif -%}
+  {% endif %}
 
 register    0
 }
